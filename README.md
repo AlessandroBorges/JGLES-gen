@@ -21,147 +21,105 @@ For example, to use a function from an EGL extension, like eglQueryDevicesEXT fr
 
 Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
 ```java
-GLmain gl = new GLmain(GL\_API.EGL);
-String cClass = gl.asCclassExt(“*EGL\_EXT\_device\_enumeration”*);
-System.***out***.println("//cClass: \\n" + cClass);
+  GLmain gl = new GLmain(GL_API.EGL);    
+  String cClass = gl.asCclassExt(“EGL_EXT_device_enumeration”);
+  System.out.println("//cClass: \n" + cClass);
+
 ```
 
 It will produce this code:
 
 ```cpp
-    //cClass:
-    \#define EGL\_EGLEXT\_PROTOTYPES
-    \#include &lt;EGL/egl.h&gt;
-    \#include &lt;EGL/eglext.h&gt;
-
-using namespace std;
-class EGLExt{
-public:
-PFNEGLQUERYDEVICESEXTPROC eglQueryDevicesEXT;
-
-public:
-// function loader
-\#define myFuncLoader(x) eglGetProcAddress(x)
-int loadExtFuncEGL\_EXT\_device\_enumeration(){
-eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader("eglQueryDevicesEXT");
-return 1;
-}
-
-public:
-int loadALL(){
-loadExtFuncEGL\_EXT\_device\_enumeration();
-return 1;
-} // loadALL()
-} // end of c++ class
+//cClass: 
+    #define  EGL_EGLEXT_PROTOTYPES 
+    #include <EGL/egl.h> 
+    #include <EGL/eglext.h> 
+    using namespace std;
+   class EGLExt{
+     public:      
+	 PFNEGLQUERYDEVICESEXTPROC	eglQueryDevicesEXT;
+     public:
+     // function loader
+     #define myFuncLoader(x) eglGetProcAddress(x)   
+      int loadExtFuncEGL_EXT_device_enumeration(){
+	    eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader("eglQueryDevicesEXT");
+	    return 1;
+      }
+     public:
+	  int loadALL(){
+     	  loadExtFuncEGL_EXT_device_enumeration();
+          return 1;
+      } // loadALL()
+ } // end of class
+```
 
 To generate a Java binding, do this:
-'''java
-GLmain gl = new GLmain(GL\_API.EGL);
-String javaClass = gl.asJavaClassExt();
-System.***out***.println(javaClass);
+```java
+    GLmain gl = new GLmain(GL_API.EGL);    
+    String javaClass = gl.asJavaClassExt();
+    System.out.println(javaClass);
+
 ```
 
 To produce this code:
 ```java
-> **package** *myPackage.glstuff*;
->
-> **import** *android*.opengl.\*;
->
-> /\*\*
->
-> \* &lt;pre&gt;
->
-> \* Extension: EGL\_EXT\_device\_enumeration API: EGL, Enumerations: 0, Functions: 1
->
-> \* &lt;/pre&gt;
->
-> \*\*/
->
-> **public** **class** *EGLEGLEXTDeviceEnumerationExt*{
->
-> // Function(s) for extension EGL\_EXT\_device\_enumeration, API: egl
->
-> /\*\*
->
-> \* Extension: EGL\_EXT\_device\_enumeration
->
-> \*
->
-> \* C Prototype:
->
-> \* EGLBoolean eglQueryDevicesEXT (
->
-> \* EGLint max\_devices,
->
-> \* EGLDeviceEXT \* devices,
->
-> \* EGLint \* num\_devices
->
-> \* );
->
-> \*
->
-> \*\*/
->
-> **public** **final** **native** **static**
->
-> **boolean** eglQueryDevicesEXT( **int** max\_devices,
->
-> **long**\[\] devices, **int** devicesOffset,
->
-> *Eint* \[\] num\_devices, **int** num\_devicesOffset);/\*
->
-> // jnigen - native goes here
->
-> return (jboolean) eglQueryDevicesEXT( (EGLint) max\_devices,
->
-> (EGLDeviceEXT \*) (devices + devicesOffset),
->
-> (EGLint \*) (num\_devices + num\_devicesOffset));
->
-> \*/
->
-> /\*\*
->
-> \* Extension: EGL\_EXT\_device\_enumeration
->
-> \*
->
-> \* C Prototype:
->
-> \* EGLBoolean eglQueryDevicesEXT (
->
-> \* EGLint max\_devices,
->
-> \* EGLDeviceEXT \* devices,
->
-> \* EGLint \* num\_devices
->
-> \* );
->
-> \*
->
-> \*\*/
->
-> **public** **final** **native** **static**
->
-> **boolean** eglQueryDevicesEXT( **int** max\_devices,
->
-> java.nio.LongBuffer devices, **int** devicesOffset,
->
-> java.nio.IntBuffer num\_devices, **int** num\_devicesOffset); /\*
->
-> // jnigen - native goes here
->
-> return (jboolean) eglQueryDevicesEXT( (EGLint) max\_devices,
->
-> (EGLDeviceEXT \*) (devices + devicesOffset),
->
-> (EGLint \*) (num\_devices + num\_devicesOffset));
->
-> \*/
->
-> }// end of class EGLEGLEXTDeviceEnumerationExt
+
+  package myPackage.glstuff;
+  import android.opengl.*;
+
+
+/**
+ * <pre>
+ * Extension: EGL_EXT_device_enumeration API: EGL, Enumerations: 0, Functions: 1
+ * </pre>
+ **/
+ public class EGLEGLEXTDeviceEnumerationExt{
+// Function(s) for extension EGL_EXT_device_enumeration, API: egl   
+
+/**
+*  Extension: EGL_EXT_device_enumeration
+*  
+* C Prototype:
+*   EGLBoolean eglQueryDevicesEXT ( 
+*              EGLint   max_devices,
+*              EGLDeviceEXT  * devices,
+*              EGLint  * num_devices
+*              );
+* 
+**/ 
+public final native static 
+boolean eglQueryDevicesEXT( int max_devices,
+                            long[]  devices, int devicesOffset,
+                            Eint [] num_devices, int num_devicesOffset);/*
+       // jnigen - native goes here
+         return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
+                                                (EGLDeviceEXT  *) (devices + devicesOffset),
+                                                (EGLint  *) (num_devices + num_devicesOffset));
+         */
+
+/**
+*  Extension: EGL_EXT_device_enumeration
+*  
+* C Prototype:
+*   EGLBoolean eglQueryDevicesEXT ( 
+*              EGLint   max_devices,
+*              EGLDeviceEXT  * devices,
+*              EGLint  * num_devices
+*              );
+* 
+**/ 
+public final native static 
+boolean eglQueryDevicesEXT( int max_devices,
+                           java.nio.LongBuffer devices, int devicesOffset,
+                           java.nio.IntBuffer num_devices, int num_devicesOffset); /*
+       // jnigen - native goes here
+         return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
+                                                (EGLDeviceEXT  *) (devices + devicesOffset),
+                                                (EGLint  *) (num_devices + num_devicesOffset));
+         */
+
+ }// end of class EGLEGLEXTDeviceEnumerationExt
+
 ```
 
 Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great tool, with years of experience added, but none of them where mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
