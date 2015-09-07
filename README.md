@@ -20,19 +20,19 @@ For example, to use a function from an EGL extension, like eglQueryDevicesEXT fr
 > **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
 
 Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
-'''java
+```java
 GLmain gl = new GLmain(GL\_API.EGL);
 String cClass = gl.asCclassExt(“*EGL\_EXT\_device\_enumeration”*);
 System.***out***.println("//cClass: \\n" + cClass);
-'''
+```
 
 It will produce this code:
 
-'''cpp
-//cClass:
-\#define EGL\_EGLEXT\_PROTOTYPES
-\#include &lt;EGL/egl.h&gt;
-\#include &lt;EGL/eglext.h&gt;
+```cpp
+    //cClass:
+    \#define EGL\_EGLEXT\_PROTOTYPES
+    \#include &lt;EGL/egl.h&gt;
+    \#include &lt;EGL/eglext.h&gt;
 
 using namespace std;
 class EGLExt{
@@ -59,10 +59,10 @@ To generate a Java binding, do this:
 GLmain gl = new GLmain(GL\_API.EGL);
 String javaClass = gl.asJavaClassExt();
 System.***out***.println(javaClass);
-'''
+```
 
 To produce this code:
-'''java
+```java
 > **package** *myPackage.glstuff*;
 >
 > **import** *android*.opengl.\*;
@@ -162,7 +162,7 @@ To produce this code:
 > \*/
 >
 > }// end of class EGLEGLEXTDeviceEnumerationExt
-'''
+```
 
 Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great tool, with years of experience added, but none of them where mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
 
