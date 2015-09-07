@@ -20,22 +20,37 @@ public class JavaTypeMap {
     public static void init(){
         // EGL
         add("EGLBoolean","boolean");
+        add("EGLBoolean *","boolean[]");
         add("EGLint","int");
-        add("EGLuint64KHR","long");       
+        
+        add("EGLint *","int[]");
+        
+        add("EGLuint64KHR","long");
+        add("EGLuint64KHR *","long[]");
+        
         add("EGLenum","int");
+        add("EGLenum *","int[]");
         
         add("EGLAttrib","int");
         add("EGLAttrib *","int[]");
         
         // EGL types
         add("EGLDisplay","long");
+        add("EGLDisplay *","long[]");
+        
         add("EGLDeviceEXT", "long");
         add("EGLDeviceEXT *", "long[] ");
+        
         add("EGLDevice", "long");
-        add("EGLDisplay", "long");
+        
         add("EGLContext", "long");
+        add("EGLContext *", "long[]");
+        
         add("EGLConfig", "long");
+        add("EGLConfig *", "long[]");
+        
         add("EGLClientBuffer", "long");
+        
         add("EGLImage", "long");
         add("EGLSurface", "long");
         add("EGLSync", "long");

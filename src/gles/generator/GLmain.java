@@ -741,6 +741,54 @@ public class GLmain {
     
     
     /**
+     * Generate a C++ class to load extension Functions 
+     * @param extension to load
+     * @return C++ source code
+     */
+    public String asCclassExt(String extension){
+        String className = getAPI().toUpperCase() + "Ext";
+        StringBuilder sb = new StringBuilder(10*1024);
+        if(api==GL_API.EGL){
+            sb.append("#define  EGL_EGLEXT_PROTOTYPES \n");
+            sb.append("#include <EGL/egl.h> \n");
+            sb.append("#include <EGL/eglext.h> \n");
+        } // GL_GLEXT_PROTOTYPES
+        else if(api==GL_API.GLES2){
+            sb.append("#define  GL_GLEXT_PROTOTYPES \n");
+            sb.append("#include <GLES3/gl32.h> \n");
+            sb.append("#include <GLES2/gl2ext.h> \n");
+        } else if(api==GL_API.GLES1){
+            sb.append("#define  GL_GLEXT_PROTOTYPES \n");
+            sb.append("#include <GLES/gl.h> \n" );
+            sb.append("#include <GLES/glext.h> \n");
+        }
+        sb.append("\n");
+        sb.append("using namespace std;\n");
+        sb.append("  class ").append(className).append("{\n");
+        
+        // variables
+        sb.append("     public:\n");
+        String fntProc = asCFunctionExtPointers(extension);
+        sb.append(fntProc);
+        
+        //methods
+        sb.append("\n");
+        sb.append("     public:\n");
+        String loaders = asCFunctionExtLoaders(extension);
+        sb.append(loaders);
+        
+//        sb.append("\n");
+//        sb.append("     public:\n");
+//        String allLoader = asCforAllLoadersExt(extension);
+//        sb.append(allLoader);
+        
+        sb.append("\n");
+        sb.append(" } // end of class");
+        return sb.toString();
+    }
+    
+    
+    /**
      * Remove "_" on extensions names
      * @param extName
      * @return
@@ -921,22 +969,56 @@ public class GLmain {
         return sb.toString();
     }
     
+    
+    
+//    /**
+//     * 
+//     * @param apiName
+//     * @return
+//     */
+//    public String asCforAllLoadersExt(String extensions) {
+//        String apiName = getAPI();       
+//        StringBuilder sb = new StringBuilder(5 * 1024);        
+//        String funcAllLoaderName = "loadAllExtensions" + apiName.toUpperCase();
+//        // get all extensions names
+//        
+//        sb.append("\n");
+//        sb.append("  /**\n").append("   * Call all extension loaders:\n");
+//        sb.append("   **/\n");
+//        List<String> loaderNames = new ArrayList<String>(64);
+//        
+//        // get all loaderNames
+//        for (GLExtension ext : glesExt) {
+//            loaderNames = ext.asCextFuncLoaderNames(loaderNames);
+//        }
+//        
+//        sb.append("    int ").append(funcAllLoaderName).append("(){\n");
+//       
+//        for(String loader : loaderNames){
+//            sb.append("     ").append(loader).append(";\n");
+//        }
+//        
+//        sb.append("\n     return 1;\n");
+//        sb.append("   } // end of ").append(funcAllLoaderName).append("\n");
+//        return sb.toString();
+//    }
+//    
     /**
      * Main tests
      * @param args
      */
     public static void main(String[] args) {
-        GLmain gl = new GLmain("", GL_API.GLES2);
+        GLmain gl = new GLmain("", GL_API.EGL);
 
         boolean testFunctionPointers = true;
         boolean testQueryExt = false;
         boolean testFunctionLoaders = true;
         boolean testAllLoaders = false;
-        boolean testCclass = false;
+        boolean testCclass = true;
         boolean testFeaturesNames = false;
         boolean testCore = false;
         boolean testJavaClass = false;
-        boolean testSingleClassExt = false;
+        boolean testSingleClassExt = true;
         boolean testAsJavaCore = false;
         
         if(testQueryExt){                       
@@ -957,7 +1039,7 @@ public class GLmain {
             print("regex: " + regex);
             print(gl.queryExtensionNames(regex));
         }
-        String ext = "KHR";
+        String ext = "EGL_EXT_device_enumeration";
         if (testFunctionPointers) {
             
             String pointers = gl.asCFunctionExtPointers(ext);
@@ -975,7 +1057,7 @@ public class GLmain {
         }
 
         if (testCclass) {
-            String cClass = gl.asCclassExt();
+            String cClass = gl.asCclassExt(ext);
             System.out.println("//cClass: \n" + cClass);
         }
 
@@ -1013,7 +1095,7 @@ public class GLmain {
         
         if(testSingleClassExt){
             System.out.println("//Single Extension Java Class Creation");
-            String extName = "KHR";//"KHR_create_context";
+            String extName = ext;//"KHR_create_context";
             String javaClass = gl.asJavaClassExt(extName);
             System.out.println(javaClass);
         }

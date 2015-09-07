@@ -372,11 +372,8 @@ public class Desktop extends JFrame {
         desktop.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         desktop.setLocationRelativeTo(null);
         desktop.setVisible(true);
-        desktop.addHTMLEditor("Overview", "<html><body>Hello, world</body></html>" );
-//        desktop.addCPPEditor("Cpp.cpp","// cpp \n int main(){\n}");
-//        desktop.addJavaEditor("Java.java","// javaCode\n public static void main(String[] args){\n  }\n");
-//        desktop.addXMLEditor("test.xml","<beep>\n\t<text> BLUP ! Blup! </text>\n</beep>\n");
-        
+        desktop.addHTMLEditor("Overview", "<html><body></body></html>" );
+
     }
     
    
