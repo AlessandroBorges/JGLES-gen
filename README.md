@@ -67,7 +67,6 @@ To produce this code:
   package gles.generated;
   import android.opengl.*;
 
-
 /**
  * <pre>
  * Extension: EGL_EXT_device_enumeration API: EGL, Enumerations: 0, Functions: 1
@@ -92,7 +91,7 @@ To produce this code:
 public final native static 
 boolean eglQueryDevicesEXT( int max_devices,
                             long[]  devices, int devicesOffset,
-                            Eint [] num_devices, int num_devicesOffset);/*
+                            int [] num_devices, int num_devicesOffset);/*
        // jnigen - native goes here
          return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
                                                 (EGLDeviceEXT  *) (devices + devicesOffset),
