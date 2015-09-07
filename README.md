@@ -123,7 +123,7 @@ boolean eglQueryDevicesEXT( int max_devices,
 
 ```
 
-Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great tool, with years of experience added, but none of them where mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
+Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great tool, with years of experience added, but none of them are mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
 
 My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native bindings through **C++** and **jnigen**.
 
