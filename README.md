@@ -5,7 +5,181 @@ Java Bindings to OpenGL-ES Generator
 
 Welcome to our code generator for binding ***EGL*** and ***OpenGL-ES***.
 
-The OpenGL-ES, or just **GL-ES**, for short, is the portable, compact **G**raphics **L**ibrary to **E**mbedded **S**ystems.
+This tool aims help create bridges between a Java/C++ application and EGL/GLES API.
+
+In usual way, this kind of work is a boring, slow and prone error task.
+
+For example, to use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you must :
+
+-   Declare function pointer for new function **eglQueryDevicesEXT**:
+
+> PFNEGLQUERYDEVICESEXTPROC **eglQueryDevicesEXT**
+
+-   Query function using eglGetProcAddress:
+
+> **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
+
+Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
+
+GLmain gl = new GLmain(GL\_API.EGL);
+
+String cClass = gl.asCclassExt(“*EGL\_EXT\_device\_enumeration”*);
+
+System.***out***.println("//cClass: \\n" + cClass);
+
+It will produce this code:
+
+//cClass:
+
+\#define EGL\_EGLEXT\_PROTOTYPES
+
+\#include &lt;EGL/egl.h&gt;
+
+\#include &lt;EGL/eglext.h&gt;
+
+using namespace std;
+
+class EGLExt{
+
+public:
+
+PFNEGLQUERYDEVICESEXTPROC eglQueryDevicesEXT;
+
+public:
+
+// function loader
+
+\#define myFuncLoader(x) eglGetProcAddress(x)
+
+int loadExtFuncEGL\_EXT\_device\_enumeration(){
+
+eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader("eglQueryDevicesEXT");
+
+return 1;
+
+}
+
+public:
+
+int loadALL(){
+
+loadExtFuncEGL\_EXT\_device\_enumeration();
+
+return 1;
+
+} // loadALL()
+
+} // end of class
+
+To generate a Java binding, do this:
+
+GLmain gl = new GLmain(GL\_API.EGL);
+
+String javaClass = gl.asJavaClassExt();
+
+System.***out***.println(javaClass);
+
+To produce this code:
+
+> **package** *myPackage.glstuff*;
+>
+> **import** *android*.opengl.\*;
+>
+> /\*\*
+>
+> \* &lt;pre&gt;
+>
+> \* Extension: EGL\_EXT\_device\_enumeration API: EGL, Enumerations: 0, Functions: 1
+>
+> \* &lt;/pre&gt;
+>
+> \*\*/
+>
+> **public** **class** *EGLEGLEXTDeviceEnumerationExt*{
+>
+> // Function(s) for extension EGL\_EXT\_device\_enumeration, API: egl
+>
+> /\*\*
+>
+> \* Extension: EGL\_EXT\_device\_enumeration
+>
+> \*
+>
+> \* C Prototype:
+>
+> \* EGLBoolean eglQueryDevicesEXT (
+>
+> \* EGLint max\_devices,
+>
+> \* EGLDeviceEXT \* devices,
+>
+> \* EGLint \* num\_devices
+>
+> \* );
+>
+> \*
+>
+> \*\*/
+>
+> **public** **final** **native** **static**
+>
+> **boolean** eglQueryDevicesEXT( **int** max\_devices,
+>
+> **long**\[\] devices, **int** devicesOffset,
+>
+> *Eint* \[\] num\_devices, **int** num\_devicesOffset);/\*
+>
+> // jnigen - native goes here
+>
+> return (jboolean) eglQueryDevicesEXT( (EGLint) max\_devices,
+>
+> (EGLDeviceEXT \*) (devices + devicesOffset),
+>
+> (EGLint \*) (num\_devices + num\_devicesOffset));
+>
+> \*/
+>
+> /\*\*
+>
+> \* Extension: EGL\_EXT\_device\_enumeration
+>
+> \*
+>
+> \* C Prototype:
+>
+> \* EGLBoolean eglQueryDevicesEXT (
+>
+> \* EGLint max\_devices,
+>
+> \* EGLDeviceEXT \* devices,
+>
+> \* EGLint \* num\_devices
+>
+> \* );
+>
+> \*
+>
+> \*\*/
+>
+> **public** **final** **native** **static**
+>
+> **boolean** eglQueryDevicesEXT( **int** max\_devices,
+>
+> java.nio.LongBuffer devices, **int** devicesOffset,
+>
+> java.nio.IntBuffer num\_devices, **int** num\_devicesOffset); /\*
+>
+> // jnigen - native goes here
+>
+> return (jboolean) eglQueryDevicesEXT( (EGLint) max\_devices,
+>
+> (EGLDeviceEXT \*) (devices + devicesOffset),
+>
+> (EGLint \*) (num\_devices + num\_devicesOffset));
+>
+> \*/
+>
+> }// end of class EGLEGLEXTDeviceEnumerationExt
 
 Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great tool, with years of experience added, but none of them where mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
 
