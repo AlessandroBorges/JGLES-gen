@@ -4,19 +4,15 @@ Java Bindings to OpenGL-ES Generator
 *Hi !*
 
 Welcome to our code generator for binding ***EGL*** and ***OpenGL-ES***.
-
 This tool aims help create bridges between a Java/C++ application and EGL/GLES API.
-
 In usual way, this kind of work is a boring, slow and prone error task.
 
 For example, to use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you must :
 
 -   Declare function pointer for new function **eglQueryDevicesEXT**:
-
 > PFNEGLQUERYDEVICESEXTPROC **eglQueryDevicesEXT**
 
 -   Query function using eglGetProcAddress:
-
 > **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
 
 Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
@@ -133,27 +129,18 @@ How it Works ?
 This tool loads a local copy of egl.xml and gl.xml, the official **XML API registry of reserved Enumerants and Functions**, maintained by Khonus ( <http://www.khronos.org> ), and extract enumerations and functions from core and extensions of the following APIS:
 
 -   EGL
-
 -   GL-ES 1.x
-
 -   GL-ES 2.0
-
 -   GL-ES 3.x
 
 With this collection of information, we can output Java and C++ source code to access the following:
 
--   Core API enumerations;
-
+-   Core API enumerations
 -   Core API functions
-
--   Extensions enumerations;
-
--   Extension functions;
-
--   Function pointers declaration, as **PFN\_**function\_name\_**PROC**
-
+-   Extensions enumerations
+-   Extension functions
+-   Function pointers declaration, as **PFN_functionName_PROC**
 -   Core and extension function loaders
-
 -   Generate Java bindings to EGL and GL-ES, using **libGDX’s** **jnigen** pattern.
 
 The Native Binding
@@ -171,12 +158,10 @@ What it is not
 This is not:
 
 -   Replacement for EGL/GLES headers. You need then.
-
 -   IA optimized source code generator. You may need to adjust generated code to fit your needs and possibly fix some minor errors.
 
 License
 -------
 
 This will use Apache 2.0 license, the same one used by Android OS.
-
 I try to keep it as a widely open source project, but still with reserves about responsibility.
