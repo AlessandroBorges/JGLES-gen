@@ -64,7 +64,7 @@ To generate a Java binding, do this:
 To produce this code:
 ```java
 
-  package myPackage.glstuff;
+  package gles.generated;
   import android.opengl.*;
 
 
@@ -75,6 +75,8 @@ To produce this code:
  **/
  public class EGLEGLEXTDeviceEnumerationExt{
 // Function(s) for extension EGL_EXT_device_enumeration, API: egl   
+
+ // TODO add some jnigen code  here
 
 /**
 *  Extension: EGL_EXT_device_enumeration
