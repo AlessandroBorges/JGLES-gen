@@ -21,7 +21,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.io.IOException;
 import java.nio.channels.CancelledKeyException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import javax.swing.JTabbedPane;
@@ -372,10 +375,22 @@ public class Desktop extends JFrame {
         desktop.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         desktop.setLocationRelativeTo(null);
         desktop.setVisible(true);
-        desktop.addHTMLEditor("Overview", "<html><body></body></html>" );
+        
+        String html = "<html><body></body></html>" ;
+        
+        try {
+            html = readUsingFiles("overview.html");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        desktop.addHTMLEditor("Overview", html );
 
     }
     
-   
+    private static String readUsingFiles(String fileName) throws IOException {
+        return new String(Files.readAllBytes(Paths.get(fileName)));        
+    }
    
 }

@@ -10,15 +10,15 @@ In usual way, this kind of work is a boring, slow and prone error task.
 For example, to use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you must :
 
 -   Declare function pointer for new function **eglQueryDevicesEXT**:
-> PFNEGLQUERYDEVICESEXTPROC **eglQueryDevicesEXT**
+ PFNEGLQUERYDEVICESEXTPROC **eglQueryDevicesEXT**
 
 -   Query function using eglGetProcAddress:
-> **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
+ **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
 
 Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
 ```java
   GLmain gl = new GLmain(GL_API.EGL);    
-  String cClass = gl.asCclassExt(“EGL_EXT_device_enumeration”);
+  String cClass = gl.asCclassExt("EGL_EXT_device_enumeration");
   System.out.println("//cClass: \n" + cClass);
 
 ```
@@ -64,10 +64,10 @@ To produce this code:
   import android.opengl.*;
 
 /**
- * <pre>
+ * 
  * Extension: EGL_EXT_device_enumeration API: EGL, Enumerations: 0, Functions: 1
- * </pre>
- **/
+ * 
+ */
  public class EGLEGLEXTDeviceEnumerationExt{
 // Function(s) for extension EGL_EXT_device_enumeration, API: egl   
 
@@ -83,7 +83,7 @@ To produce this code:
 *              EGLint  * num_devices
 *              );
 * 
-**/ 
+*/ 
 public final native static 
 boolean eglQueryDevicesEXT( int max_devices,
                             long[]  devices, int devicesOffset,
@@ -104,7 +104,7 @@ boolean eglQueryDevicesEXT( int max_devices,
 *              EGLint  * num_devices
 *              );
 * 
-**/ 
+*/ 
 public final native static 
 boolean eglQueryDevicesEXT( int max_devices,
                            java.nio.LongBuffer devices, int devicesOffset,
@@ -119,7 +119,7 @@ boolean eglQueryDevicesEXT( int max_devices,
 
 ```
 
-Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great tool, with years of experience added, but none of them are mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
+Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great, with years of experience added, but none of them are mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
 
 My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native bindings through **C++** and **jnigen**.
 

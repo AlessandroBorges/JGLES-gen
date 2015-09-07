@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+</head>
+<body>
+<h1 id="java-bindings-to-opengl-es-generator">Java Bindings to OpenGL-ES Generator</h1>
+<p><em>Hi !</em></p>
+<p>Welcome to our code generator for binding <strong><em>EGL</em></strong> and <strong><em>OpenGL-ES</em></strong>. This tool aims help create bridges between a Java/C++ application and EGL/GLES API. In usual way, this kind of work is a boring, slow and prone error task.</p>
+<p>For example, to use a function from an EGL extension, like eglQueryDevicesEXT from <em>EGL_EXT_device_enumeration</em>, you must :</p>
+<ul>
+<li><p>Declare function pointer for new function <strong>eglQueryDevicesEXT</strong>: PFNEGLQUERYDEVICESEXTPROC <strong>eglQueryDevicesEXT</strong></p></li>
+<li><p>Query function using eglGetProcAddress: <strong>eglQueryDevicesEXT = (</strong>PFNEGLQUERYDEVICESEXTPROC<strong>)eglGetProcAddress(“eglQueryDevicesEXT”);</strong></p></li>
+</ul>
+<p>Replace all this work with 3 line of code to produce a C++ class to handle it, like below:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">  GLmain gl = <span class="kw">new</span> <span class="fu">GLmain</span>(GL_API.<span class="fu">EGL</span>);    
+  String cClass = gl.<span class="fu">asCclassExt</span>(<span class="st">&quot;EGL_EXT_device_enumeration&quot;</span>);
+  System.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;//cClass: </span><span class="ch">\n</span><span class="st">&quot;</span> + cClass);</code></pre></div>
+<p>It will produce this code:</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="co">//cClass: </span>
+    <span class="ot">#define  EGL_EGLEXT_PROTOTYPES </span>
+    <span class="ot">#include &lt;EGL/egl.h&gt; </span>
+    <span class="ot">#include &lt;EGL/eglext.h&gt; </span>
+    <span class="kw">using</span> <span class="kw">namespace</span> std;
+   <span class="kw">class</span> EGLExt{
+     <span class="kw">public</span>:      
+     PFNEGLQUERYDEVICESEXTPROC  eglQueryDevicesEXT;
+     <span class="kw">public</span>:
+     <span class="co">// function loader</span>
+     <span class="ot">#define myFuncLoader(x) eglGetProcAddress(x)   </span>
+      <span class="dt">int</span> loadExtFuncEGL_EXT_device_enumeration(){
+        eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader(<span class="st">&quot;eglQueryDevicesEXT&quot;</span>);
+        <span class="kw">return</span> <span class="dv">1</span>;
+      }
+     <span class="kw">public</span>:
+      <span class="dt">int</span> loadALL(){
+          loadExtFuncEGL_EXT_device_enumeration();
+          <span class="kw">return</span> <span class="dv">1</span>;
+      } <span class="co">// loadALL()</span>
+ } <span class="co">// end of class</span></code></pre></div>
+<p>To generate a Java binding, do this:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">    GLmain gl = <span class="kw">new</span> <span class="fu">GLmain</span>(GL_API.<span class="fu">EGL</span>);    
+    String javaClass = gl.<span class="fu">asJavaClassExt</span>();
+    System.<span class="fu">out</span>.<span class="fu">println</span>(javaClass);</code></pre></div>
+<p>To produce this code:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">
+  <span class="kw">package gles.generated;</span>
+  <span class="kw">import android.opengl.*;</span>
+
+<span class="co">/**</span>
+<span class="co"> * </span>
+<span class="co"> * Extension: EGL_EXT_device_enumeration API: EGL, Enumerations: 0, Functions: 1</span>
+<span class="co"> * </span>
+<span class="co"> */</span>
+ <span class="kw">public</span> <span class="kw">class</span> EGLEGLEXTDeviceEnumerationExt{
+<span class="co">// Function(s) for extension EGL_EXT_device_enumeration, API: egl   </span>
+
+ <span class="co">// TODO add some jnigen code  here</span>
+
+<span class="co">/**</span>
+<span class="co">*  Extension: EGL_EXT_device_enumeration</span>
+<span class="co">*  </span>
+<span class="co">* C Prototype:</span>
+<span class="co">*   EGLBoolean eglQueryDevicesEXT ( </span>
+<span class="co">*              EGLint   max_devices,</span>
+<span class="co">*              EGLDeviceEXT  * devices,</span>
+<span class="co">*              EGLint  * num_devices</span>
+<span class="co">*              );</span>
+<span class="co">* </span>
+<span class="co">*/</span> 
+<span class="kw">public</span> <span class="dt">final</span> <span class="kw">native</span> <span class="dt">static</span> 
+<span class="dt">boolean</span> <span class="fu">eglQueryDevicesEXT</span>( <span class="dt">int</span> max_devices,
+                            <span class="dt">long</span>[]  devices, <span class="dt">int</span> devicesOffset,
+                            <span class="dt">int</span> [] num_devices, <span class="dt">int</span> num_devicesOffset);<span class="co">/*</span>
+<span class="co">       // jnigen - native goes here</span>
+<span class="co">         return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,</span>
+<span class="co">                                                (EGLDeviceEXT  *) (devices + devicesOffset),</span>
+<span class="co">                                                (EGLint  *) (num_devices + num_devicesOffset));</span>
+<span class="co">         */</span>
+
+<span class="co">/**</span>
+<span class="co">*  Extension: EGL_EXT_device_enumeration</span>
+<span class="co">*  </span>
+<span class="co">* C Prototype:</span>
+<span class="co">*   EGLBoolean eglQueryDevicesEXT ( </span>
+<span class="co">*              EGLint   max_devices,</span>
+<span class="co">*              EGLDeviceEXT  * devices,</span>
+<span class="co">*              EGLint  * num_devices</span>
+<span class="co">*              );</span>
+<span class="co">* </span>
+<span class="co">*/</span> 
+<span class="kw">public</span> <span class="dt">final</span> <span class="kw">native</span> <span class="dt">static</span> 
+<span class="dt">boolean</span> <span class="fu">eglQueryDevicesEXT</span>( <span class="dt">int</span> max_devices,
+                           java.<span class="fu">nio</span>.<span class="fu">LongBuffer</span> devices, <span class="dt">int</span> devicesOffset,
+                           java.<span class="fu">nio</span>.<span class="fu">IntBuffer</span> num_devices, <span class="dt">int</span> num_devicesOffset); <span class="co">/*</span>
+<span class="co">       // jnigen - native goes here</span>
+<span class="co">         return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,</span>
+<span class="co">                                                (EGLDeviceEXT  *) (devices + devicesOffset),</span>
+<span class="co">                                                (EGLint  *) (num_devices + num_devicesOffset));</span>
+<span class="co">         */</span>
+
+ }<span class="co">// end of class EGLEGLEXTDeviceEnumerationExt</span></code></pre></div>
+<p>Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great, with years of experience added, but none of them are mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.</p>
+<p>My proposal is supporting <strong>EGL</strong> and <strong>GL-ES</strong>, with focus on <strong>Java</strong> native bindings through <strong>C++</strong> and <strong>jnigen</strong>.</p>
+<h2 id="how-it-works">How it Works ?</h2>
+<p>This tool loads a local copy of egl.xml and gl.xml, the official <strong>XML API registry of reserved Enumerants and Functions</strong>, maintained by Khonus ( <a href="http://www.khronos.org" class="uri">http://www.khronos.org</a> ), and extract enumerations and functions from core and extensions of the following APIS:</p>
+<ul>
+<li>EGL</li>
+<li>GL-ES 1.x</li>
+<li>GL-ES 2.0</li>
+<li>GL-ES 3.x</li>
+</ul>
+<p>With this collection of information, we can output Java and C++ source code to access the following:</p>
+<ul>
+<li>Core API enumerations</li>
+<li>Core API functions</li>
+<li>Extensions enumerations</li>
+<li>Extension functions</li>
+<li>Function pointers declaration, as <strong>PFN_functionName_PROC</strong></li>
+<li>Core and extension function loaders</li>
+<li>Generate Java bindings to EGL and GL-ES, using <strong>libGDX’s</strong> <strong>jnigen</strong> pattern.</li>
+</ul>
+<h2 id="the-native-binding">The Native Binding</h2>
+<p>Native binding for Java is provided with source code following <strong>jnigen</strong> pattern. This is a simple, widely adopted way to create JNI code without pain.</p>
+<p>Nevertheless, our generator is also capable to output C++ classes for each API, with core functions and/or extensions, to be used by your <strong>jnigen</strong> code.</p>
+<p><strong><span class="citation">@See</span></strong> more about jnigen here: <a href="https://github.com/libgdx/libgdx/wiki/jnigen" class="uri">https://github.com/libgdx/libgdx/wiki/jnigen</a></p>
+<h2 id="what-it-is-not">What it is not</h2>
+<p>This is not:</p>
+<ul>
+<li>Replacement for EGL/GLES headers. You need then.</li>
+<li>IA optimized source code generator. You may need to adjust generated code to fit your needs and possibly fix some minor errors.</li>
+</ul>
+<h2 id="license">License</h2>
+<p>This will use Apache 2.0 license, the same one used by Android OS. I try to keep it as a widely open source project, but still with reserves about responsibility.</p>
+</body>
+</html>
