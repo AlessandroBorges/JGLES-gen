@@ -11,7 +11,7 @@ public interface JavaPrinter {
     
     /**
      * Print content as a Java source code.
-     * @return
+     * @return representations as java source code
      */
     public String asJavaString();
 

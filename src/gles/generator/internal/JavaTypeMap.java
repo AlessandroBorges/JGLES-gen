@@ -307,7 +307,7 @@ public class JavaTypeMap {
     
     /**
      * Get a JNI type
-     * @param jType - type to query, as int, boolean, etc
+     * @param proto - type to query, as int, boolean, etc
      * @return
      */
     public static String getJNItype(String proto){

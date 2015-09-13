@@ -35,8 +35,6 @@ public class BufferInfo {
 
     /**
      * Initialize BufferInfo
-     * 
-     * @param buffer buffer to introspect
      */
     private BufferInfo() {
     }
@@ -79,7 +77,7 @@ public class BufferInfo {
      * Get element shift to get size in bytes.
      * 
      * @param b - Buffer subclass to query
-     * @return the bit shift ( << ) to get size of buffer element.
+     * @return the left bit shift to get size of buffer element.
      */
     public static int getElementSizeShift(Buffer b) {
         // sanity check
@@ -105,7 +103,7 @@ public class BufferInfo {
      * Buffer, assuming Buffer's current position, or 0 if the
      * Buffer is not backed by native heap storage.
      * 
-     * @param buffer to query
+     * @param b - buffer to query
      * @return offset from baseAddress to current position, in bytes.
      */
     public static int getOffsetInBytes(Buffer b) {
@@ -335,12 +333,12 @@ public class BufferInfo {
      * 
      * Calc:
      * 
-     *    (b.arrayOffset() + b.position()) << elementSizeShift;
+     *    (b.arrayOffset() + b.position()) left_shift  elementSizeShift;
      * 
      * </pre>
      * 
-     * @return base array in bytes. (b.arrayOffset() + b.position()) <<
-     *         elementSizeShift
+     * @return base array in bytes, as
+     *    (b.arrayOffset() + b.position()) left_shift elementSizeShift
      */
     public static int getBaseArrayOffset(Buffer b) {
         // return b.hasArray() ? ((b.arrayOffset() + b.position) <<

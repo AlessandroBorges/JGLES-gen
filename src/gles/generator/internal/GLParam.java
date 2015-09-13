@@ -189,7 +189,7 @@ public class GLParam implements JavaPrinter{
     
    /**
     * If this param is <b>pointer</b>, it will convert to a 
-    * valid array and add a extra param for <b>offset(/b>. <br>
+    * valid array and add a extra param for <b>offset</b>. <br>
     * 
     * Example
     * <pre>

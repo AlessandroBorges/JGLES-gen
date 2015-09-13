@@ -3,7 +3,7 @@ package gles.generator.internal;
 import java.util.*;
 
 /**
- * Store all GL Commands & Functions. <br>
+ * Store all GL Commands and Functions. <br>
  * 
  * @author Alessandro Borges
  *

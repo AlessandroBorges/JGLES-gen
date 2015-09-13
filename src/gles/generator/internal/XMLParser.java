@@ -22,6 +22,7 @@ import com.sun.xml.internal.bind.v2.runtime.RuntimeUtil.ToStringAdapter;
 /**
  * Class to Parse Khronos XML files, as egl.xml and gl.xml.
  * 
+ * 
  * @see https://www.khronos.org/opengl/
  * @see https://www.khronos.org/egl
  * @see https://www.khronos.org/opengles/
@@ -82,14 +83,14 @@ public class XMLParser {
         System.out.println("///////////////////////////////////");
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(GLExtension.GLES1);
-            String cFPNProc = glExt.asCfunctionPointers();
+            String cFPNProc = glExt.asCfunctionPointers(true);
             System.err.println(cFPNProc);
         }
         
         System.out.println("///////////////////////////////////");
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(GLExtension.GLES1);
-            String txt = glExt.asCfunctionLoaders();
+            String txt = glExt.asCfunctionLoaders(true);
             System.out.println(txt);
         }
         

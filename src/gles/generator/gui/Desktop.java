@@ -6,41 +6,32 @@ package gles.generator.gui;
 import gles.generator.GLmain;
 import gles.generator.GLmain.GL_API;
 
-import javax.swing.JComponent;
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.Beans;
 import java.io.IOException;
-import java.nio.channels.CancelledKeyException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
-
-import javax.swing.JTabbedPane;
-import javax.swing.JEditorPane;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.border.BevelBorder;
-
-import de.sciss.syntaxpane.DefaultSyntaxKit;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.SoftBevelBorder;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.beans.Beans;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import de.sciss.syntaxpane.DefaultSyntaxKit;
 
 
 
@@ -48,9 +39,15 @@ import java.beans.PropertyChangeListener;
  * @author Alessandro Borges
  *
  */
+@SuppressWarnings("serial")
 public class Desktop extends JFrame {
     
     
+    private static final String C_LOADER_FOR_ALL_EXTENSION_FUNCTIONS = "C++ Loader for all Extension Functions";
+    private static final String C_EXTENSION_FUNCTION_LOADERS = "C++ Extension Function Loaders";
+    private static final String C_EXT_FUNCTION_POINTERS = "C++ Ext. Function Pointers";
+    private static final String JAVA_EXTENSIONS_CLASS = "Java Extensions class";
+
     private JTabbedPane tabbedPane;
     
     private GLmain gl;
@@ -62,7 +59,7 @@ public class Desktop extends JFrame {
     
     static{     
         if(!Beans.isDesignTime()){
-            setLF();
+          //  setLF();
             DefaultSyntaxKit.initKit();
         }
         
@@ -169,7 +166,12 @@ public class Desktop extends JFrame {
         centerPanel.add(tabbedPane, BorderLayout.CENTER);
     }
     
-    
+    /**
+     * 
+     * @param btLaunch 
+     * @param message
+     * @param note
+     */
     private void createProgress(JButton btLaunch, String message, String note){
          progresso = new Progresso(this);
          progresso.setMessage(message);
@@ -177,55 +179,71 @@ public class Desktop extends JFrame {
          progresso.setVisible(true);        
     }
     
-  
     
+    /**
+     * generate EGL source code. <br>
+     * First step.
+     */
     protected void doEGL(){        
         gl = new GLmain("", GL_API.EGL, null);  
         gl.go(); 
+        
+    }
+    /**
+     *generate EGL source code. <br>
+     * Second step. 
+     */
+    protected void doEGL2(){
         addXMLEditor("egl.xml", gl.getXML());  
-        addJavaEditor("Java EGL Extensions",  gl.asJavaClassExt());
-        String pointers = gl.asCFunctionExtPointers("*");
-        addCPPEditor("C++ EGL Function Pointers", pointers);
-        String pfnLoaders = gl.asCFunctionExtLoaders("");
-        addCPPEditor("C++ EGL ext. func. Loaders", pfnLoaders); 
+        addJavaEditor("EGL::" + JAVA_EXTENSIONS_CLASS,  gl.asJavaClassExt());
+        String pointers = gl.asCFunctionExtPointers("*",true);
+        addCPPEditor("EGL::" + C_EXT_FUNCTION_POINTERS, pointers);
+        String pfnLoaders = gl.asCFunctionExtLoaders("",true);
+        addCPPEditor("EGL::" + C_EXTENSION_FUNCTION_LOADERS, pfnLoaders); 
         String allLoaders = gl.asCforAllLoadersExt();        
-        addCPPEditor("C++ EGL ext. all func. loaders", allLoaders);
+        addCPPEditor("EGL::" + C_LOADER_FOR_ALL_EXTENSION_FUNCTIONS, allLoaders);
         progresso.done();
     }
     
+    /**
+     * generates GLES 1.x source code
+     */
     protected void doGLES1(){       
         gl = new GLmain("", GL_API.GLES1, null);
         gl.go();        
         
         addXMLEditor("gl.xml", gl.getXML());
-        addJavaEditor("Java GLES 1.x Ext.",  gl.asJavaClassExt());  
+        addJavaEditor("GLES 1.x::" + JAVA_EXTENSIONS_CLASS,  gl.asJavaClassExt());  
         
-        String pointers = gl.asCFunctionExtPointers("*");
-        addCPPEditor("C++ GLES 1.x Extension Function Pointers", pointers);
+        String pointers = gl.asCFunctionExtPointers("*",true);
+        addCPPEditor("GLES 1.x::" + C_EXT_FUNCTION_POINTERS, pointers);
         
-        String pfnLoaders = gl.asCFunctionExtLoaders("");
-        addCPPEditor("C++ GLES 1.x Extension Function Loaders", pfnLoaders);
+        String pfnLoaders = gl.asCFunctionExtLoaders("",true);
+        addCPPEditor("GLES 1.x::" + C_EXTENSION_FUNCTION_LOADERS, pfnLoaders);
         
         
         String allLoaders = gl.asCforAllLoadersExt();        
-        addCPPEditor("C++ GLES 1.x Loader for all Extension Function", allLoaders);
+        addCPPEditor("GLES 1.x::" + C_LOADER_FOR_ALL_EXTENSION_FUNCTIONS, allLoaders);
                 
         progresso.done();
     }
     
+    /**
+     * generates GLES 2.0+ source code
+     */
     protected void doGLES2(){
         gl = new GLmain("", GL_API.GLES2);
         addXMLEditor("gl.xml", gl.getXML());
-        addJavaEditor("Java GLES 2.0+ Ext.",  gl.asJavaClassExt());
+        addJavaEditor("GLES 2.0::" + JAVA_EXTENSIONS_CLASS,  gl.asJavaClassExt());
         
-        String pointers = gl.asCFunctionExtPointers("*");
-        addCPPEditor("C++ GLES 2.0+ Extension Function Pointers", pointers);        
+        String pointers = gl.asCFunctionExtPointers("*",true);
+        addCPPEditor("GLES 2.0::" + C_EXT_FUNCTION_POINTERS, pointers);        
                
-        String pfnLoaders = gl.asCFunctionExtLoaders("");
-        addCPPEditor("C++ GLES 2.0+ Extension Function Loaders", pfnLoaders);
+        String pfnLoaders = gl.asCFunctionExtLoaders("",true);
+        addCPPEditor("GLES 2.0::" + C_EXTENSION_FUNCTION_LOADERS, pfnLoaders);
         
         String allLoaders = gl.asCforAllLoadersExt();        
-        addCPPEditor("C++ GLES 2.0+ Loader for all Extension Function", allLoaders);
+        addCPPEditor("GLES 2.0::" + C_LOADER_FOR_ALL_EXTENSION_FUNCTIONS, allLoaders);
         progresso.done();
     }
     
@@ -262,8 +280,7 @@ public class Desktop extends JFrame {
     public void addHTMLEditor(String name, String text){
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
-        JEditorPane jc = createHTMLEditor(panel);
-        jc.setText(text);
+        JEditorPane jc = createHTMLEditor(panel, text);        
         mapEditor.put(name,jc);          
         tabbedPane.addTab(name, null, panel, null);
     }
@@ -329,11 +346,22 @@ public class Desktop extends JFrame {
      */
     private JEditorPane createHTMLEditor(JComponent c){        
         String html = "<html><body>Hello, world</body></html>";
-        final JEditorPane codeEditor = new JEditorPane("text/html",html);
-        JScrollPane scrPane = new JScrollPane(codeEditor);
+        return createHTMLEditor(c, html);
+    }
+    
+    /**
+     * Todo use webkit
+     * @param c component to attach
+     * @param content text content
+     * @return JEditorPane instance
+     */
+    private JEditorPane createHTMLEditor(JComponent c, String content){ 
+        final JEditorPane codeEditor = new JEditorPane("text/html",content);
+        JScrollPane scrPane = new JScrollPane(codeEditor);  
+        scrPane.getVerticalScrollBar().setValue(0);
         c.add(scrPane, BorderLayout.CENTER);
         c.doLayout();
-        return codeEditor;  
+        return codeEditor; 
     }
     
     /**
@@ -376,16 +404,18 @@ public class Desktop extends JFrame {
         desktop.setLocationRelativeTo(null);
         desktop.setVisible(true);
         
-        String html = "<html><body></body></html>" ;
+        String html = "<html><body>Hello WOrld</body></html>" ;
         
         try {
-            html = readUsingFiles("overview.html");
-        } catch (IOException e) {
+          //  html = readUsingFiles("README.html");
+           
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         
         desktop.addHTMLEditor("Overview", html );
+        System.err.println(html);
 
     }
     

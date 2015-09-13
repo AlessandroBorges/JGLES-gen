@@ -4,10 +4,12 @@ import java.nio.*;
 
 /**
  * Class to extract info about a Heap Buffer, as:
+ * <ul>
  * <li>Type
  * <li> primitive backup array
  * <li> size
  * <li> offset
+ * </ul>
  * <br>
  * Please note that Direct Buffers are not wrapped.
  * As JNI handle direct Buffers as (void *) or (char *),

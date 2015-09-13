@@ -32,8 +32,10 @@ public class GLExtensionRequire {
     
     /**
      * Notes:<br>
+     * <ul>
      *  <li> <b>extName</b> comes from owner GLextension.
-     *  <li> if <b>supported</b> is undefined, it gets value from belonging GLExtension's supported.<br> 
+     *  <li> if <b>supported</b> is undefined, it gets value from belonging GLExtension's supported.<br>
+     *  <ul> 
      */
     public String extName, api, protect, profile, comment;
     
@@ -230,7 +232,7 @@ public class GLExtensionRequire {
     
     /**
      * Return the functions as Java methods, in a List
-     * @return List<String> with one command per position. 
+     * @return List of String with one command per position. 
      */  
     public List<String> getJavaStringFunctions() {
         List<String> functions = new ArrayList<String>(8);

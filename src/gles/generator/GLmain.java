@@ -29,7 +29,9 @@ public class GLmain {
     /**
      * API Strings enumeration
      */
-    public static final String GL = "gl", GLES1 = "gles1", GLES2="gles2", EGL="egl";
+    public static final String GL = "gl", GLES1 = "gles1", GLES2="gles2",
+                               GLES3="gles3",GLES31="gles31",GLES32="gles32",
+                               EGL="egl";
     
     /**
      * masks for GLFeatures
@@ -49,7 +51,11 @@ public class GLmain {
      *
      */
     public enum GL_API{
-        GL, GLES1, GLES2, EGL
+        GL, GLES1, GLES2, GLES3, GLES31, GLES32, EGL;
+        
+        public String toString2(){
+            return super.toString().toLowerCase();
+        }
     }
     
     public GL_API api;    
@@ -93,12 +99,12 @@ public class GLmain {
     /**
      * Process an EGL/GL in lazy mode.<br>
      * 
-     * After instatiation, call {@link #go()} to start processing in lazy mode.
+     * After instantiation, call {@link #go()} to start processing in lazy mode.
      * 
      * @see #go()
      * @param path - path do egl.xml or gl.xml
      * @param api - api to process
-     * @param obj - dummi parameter
+     * @param obj - dummy parameter
      */
     public GLmain(String path, GL_API api, Object obj){
         this._path = path;
@@ -115,7 +121,13 @@ public class GLmain {
         go(path,api);
     }
     
-    
+    /**
+     * Simple Ctor
+     * @param api - api to parse
+     */
+    public GLmain(GL_API api){
+        this("",api);
+    }
     
     /**
      * Start processing in lazy mode.
@@ -135,8 +147,8 @@ public class GLmain {
     
     /**
      * start to XML processing
-     * @param path
-     * @param api
+     * @param path - path to file
+     * @param api - GL_API to load
      */
     private void go(String path, GL_API api){
         if(goDone) {
@@ -164,7 +176,10 @@ public class GLmain {
         boolean useEGL = api == GL_API.EGL;
         boolean useGL = api == GL_API.GL;
         boolean useGLES = api == GL_API.GLES1;
-        boolean useGLES2 = api == GL_API.GLES2;
+        boolean useGLES2 = (api == GL_API.GLES2) 
+                || (api == GL_API.GLES3) 
+                || (api == GL_API.GLES31) 
+                || (api == GL_API.GLES32) ;
         
         glesExt = parser.filterExtensions(useGL, useGLES, useGLES2, useEGL);   
         setProgress(60);
@@ -218,6 +233,9 @@ public class GLmain {
         case GL: return GLmain.GL;
         case GLES1: return GLmain.GLES1;
         case GLES2: return GLmain.GLES2;
+        case GLES3: return GLmain.GLES3;
+        case GLES31: return GLmain.GLES31;
+        case GLES32: return GLmain.GLES32;
         default:
             return null;        
         }
@@ -233,10 +251,18 @@ public class GLmain {
     
     /**
      * Get current API as String
-     * @return
+     * @return current api as string
      */
     protected String getAPI(){
         return getAPIString(api);
+    }
+    
+    /**
+     * TODO improve to replace {@link #getAPI()}
+     * @return
+     */
+    protected GL_API getAPI_new(){
+        return api;
     }
     
     /**
@@ -255,13 +281,14 @@ public class GLmain {
     
     /**
      * Get C Extension Function Pointers 
+     * @param asStatic - true to create static function pointers
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtPointers(){
+    public String asCFunctionExtPointers(boolean asStatic){
         StringBuilder sb = new StringBuilder(8*1024);        
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(getAPI());
-            String cFPNProc = glExt.asCfunctionPointers();
+            String cFPNProc = glExt.asCfunctionPointers(asStatic);
             sb.append(cFPNProc);
         }     
         return sb.toString();
@@ -269,7 +296,7 @@ public class GLmain {
     
     /**
      * Get the source code for a PFN_FUNC loader, 
-     * as eglGetProcAdress
+     * as eglGetProcAdress, wglGetProcAddress, glxGetProcAddress
      * @return
      */
     public String getCFuncProcAddress(){
@@ -315,10 +342,11 @@ public class GLmain {
     }
     
     /**
-     * Query Extensions by name.
-     * Use "*" to get all functions
+     * Query Extensions by name.<br>
+     * Use "*" to get all functions.<br>
+     * Partial names are also accepted, as "AMD", "IMG","NV", "EXT", "QCOM", etc.
      * 
-     * @param queryExt - CASE sentive substring or a regex to query extensions by name. 
+     * @param queryExt - CASE sensitive substring or a regex to query extensions by name. 
      * @return list of extension names matching query
      */
     public List<String> queryExtensionNames(String queryExt){
@@ -331,7 +359,7 @@ public class GLmain {
         String regex = queryExt;
         boolean useRegEx = false;
         try{
-            String test = "abcdefgh1234";
+            String test = "abcdefgl1234";
             test.matches(regex);
             useRegEx = true;
         }catch(PatternSyntaxException psx){
@@ -358,9 +386,10 @@ public class GLmain {
      * Get C Extension Function Pointers 
      * 
      * @param extensionName - extension name or regex to query function pointers
+     * @param asStatic - true to create static function pointers
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtPointers(String extensionName) {
+    public String asCFunctionExtPointers(String extensionName, boolean asStatic) {
         if (extensionName == null) {
             extensionName = "";
         }
@@ -379,7 +408,37 @@ public class GLmain {
             String name = glExt.name.trim();
             if (list.contains(name)) {
                 glExt.setJavaAPIMode(getAPI());
-                String cFPNProc = glExt.asCfunctionPointers();
+                String cFPNProc = glExt.asCfunctionPointers(asStatic);
+                sb.append(cFPNProc);
+            }
+        }
+        return sb.toString();
+    }
+    
+    
+    /**
+     * Get C Extension Function Pointers 
+     * 
+     * @param extensionNames - List of <b>exactly</b>  extension name function pointers
+     * @param asStatic - true to create static functions
+     * @return java loading methods for GL/EGL Extensions
+     */
+    public String asCFunctionExtPointers(List<String> extensionNames, boolean asStatic) {                
+        List<String> list = extensionNames;
+        StringBuilder sb = new StringBuilder(8 * 1024);
+        // list extensions used
+        
+        sb.append("   // Declaration of FuncPointer vars \n");
+       // sb.append("   // Extension key \"").append(extensionName).append("\" \n");
+        for(String ext : list){
+            sb.append("   // ").append(ext).append("\n");
+        }
+        
+        for (GLExtension glExt : glesExt) {
+            String name = glExt.name.trim();
+            if (list.contains(name)) {
+                glExt.setJavaAPIMode(getAPI());
+                String cFPNProc = glExt.asCfunctionPointers(asStatic);
                 sb.append(cFPNProc);
             }
         }
@@ -392,7 +451,7 @@ public class GLmain {
      * @param extensionName - extension name or regex to query function pointers
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtLoaders(String extensionName) {
+    public String asCFunctionExtLoaders(String extensionName, boolean asStatic) {
         if (extensionName == null) {
             extensionName = "";
         }
@@ -414,7 +473,7 @@ public class GLmain {
             String name = glExt.name.trim();
             if (list.contains(name)) {
                 glExt.setJavaAPIMode(getAPI());
-                String loader = glExt.asCfunctionLoaders();
+                String loader = glExt.asCfunctionLoaders(asStatic);
                 sb.append(loader);
                 
                 listLoaderNames.add(glExt.getFunctionLoaderName());
@@ -425,7 +484,61 @@ public class GLmain {
         sb.append("\n\n");
         sb.append("   // Declaration of loadALL(), to call all PFN_PROC pointers \n");
         sb.append("   // Extension key \"").append(extensionName).append("\" \n");
-        sb.append("  int loadALL(){\n");
+        if(asStatic){
+            sb.append(" static");
+        }
+        sb.append(" int loadALL(){\n");
+        
+        for (String string : listLoaderNames) {
+            sb.append("\t ").append(string).append("();\n");
+        }
+        sb.append("       return 1;\n");
+        sb.append("   } // loadALL()\n");
+        
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Get C Extension Function Pointers 
+     * TODO retrofit
+     * @param extensionName - List of <b>exactly</b> extension names query function pointers
+     * @return java loading methods for GL/EGL Extensions
+     */
+    public String asCFunctionExtLoaders(List<String> extensionNames, boolean asStatic) {
+       
+        List<String> list = extensionNames;
+        List<String> listLoaderNames = new ArrayList<String>(list.size());
+        StringBuilder sb = new StringBuilder(8 * 1024);
+        // list extensions used
+        sb.append("  // function loader\n")
+        .append(getCFuncProcAddress())
+        .append("\n\n");
+        sb.append("   // Declaration of LOADERS for function pointers - PFN_PROC \n");
+       // sb.append("   // Extension key \"").append(extensionName).append("\" \n");
+        for(String ext : list){
+            sb.append("   // ").append(ext).append("\n");
+        }
+        
+        for (GLExtension glExt : glesExt) {
+            String name = glExt.name.trim();
+            if (list.contains(name)) {
+                glExt.setJavaAPIMode(getAPI());
+                String loader = glExt.asCfunctionLoaders(asStatic);
+                sb.append(loader);
+                
+                listLoaderNames.add(glExt.getFunctionLoaderName());
+            }
+        }
+        
+        // declare loadALL()
+        sb.append("\n\n");
+        sb.append("   // Declaration of loadALL(), to call all PFN_PROC pointers \n");
+       // sb.append("   // Extension key \"").append(extensionName).append("\" \n");
+        if(asStatic){
+            sb.append(" static");
+        }
+        sb.append(" int loadALL(){\n");
         
         for (String string : listLoaderNames) {
             sb.append("\t ").append(string).append("();\n");
@@ -441,7 +554,7 @@ public class GLmain {
      * Get C Function Pointers 
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtLoaders() {
+    public String asCFunctionExtLoaders(boolean asStatic) {
         StringBuilder sb = new StringBuilder(8 * 1024);
         
         sb.append("  // function loader\n")
@@ -449,7 +562,7 @@ public class GLmain {
         .append("\n\n");
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(getAPI());
-            String loader = glExt.asCfunctionLoaders();
+            String loader = glExt.asCfunctionLoaders(asStatic);
             sb.append(loader);
         }
         return sb.toString();
@@ -463,6 +576,7 @@ public class GLmain {
         StringBuilder sb = new StringBuilder(10*1024);
         
         String extensions = asJavaExtension();
+        String jniHeader = asJavaJnigenHeader("");
         
         String className = getAPI().toUpperCase() + "Ext";
         sb.append("/**\n * Place holder for license disclaimer\n **/\n")
@@ -470,6 +584,7 @@ public class GLmain {
           .append("\t import android.opengl.*;\n")
           .append("\n\n")
           .append("   public class ").append(className).append("{\n")
+          .append(jniHeader)
           .append(extensions)
           .append("\n   }// end of class ").append(className)
           .append("\n");
@@ -484,16 +599,18 @@ public class GLmain {
     public String asJavaClassCore(FeatureNameEnum feature, boolean backwards){
         StringBuilder sb = new StringBuilder(10*1024);
         
-        String extensions = asJavaCore(feature, backwards);
+        String core = asJavaCore(feature, backwards);
+        String jniHeader = asJavaJnigenHeaderCore();
         
         String className = getAPI().toUpperCase() + "Ext";
-        sb.append("/**\n * Place holder for license disclaimer\n **/\n")
-          .append("\t package myPackage.glstuff;\n")
-          .append("\t import android.opengl.*;\n")
+        sb.append("  /**\n * Place holder for license disclaimer\n **/\n")
+          .append("    package gles.generated;\n\n")
+          .append("    import android.opengl.*;\n")
           .append("\n\n")
-          .append("   public class ").append(className).append("{\n")
-          .append(extensions)
-          .append("\n   }// end of class ").append(className)
+          .append("    public class ").append(className).append("{\n")
+          .append(jniHeader)
+          .append(core)
+          .append("\n    }// end of class ").append(className)
           .append("\n");
         
         return sb.toString();
@@ -523,10 +640,11 @@ public class GLmain {
         String extensions = asJavaExtension(extensionName, glExts);
         String midClassName = extName2ClassName(extensionName);
         String className = getAPI().toUpperCase()+ midClassName + "Ext";
+        String jniHeader = asJavaJnigenHeader(extensionName); 
         
         StringBuilder sb = new StringBuilder(10*1024);
         sb.append("  /**\n   * Place holder for license disclaimer.\n   **/\n\n")
-          .append("    package myPackage.glstuff;\n")
+          .append("    package gles.generated;\n\n")
           .append("    import android.opengl.*;\n")
           .append("\n\n")
           .append("  /**\n   * <pre>\n");
@@ -542,6 +660,7 @@ public class GLmain {
           sb.append("   * </pre>\n")
             .append("   **/\n")
             .append("   public class ").append(className).append("{\n")
+            .append(jniHeader)
             .append(extensions)
             .append("\n   }// end of class ").append(className)
             .append("\n");
@@ -549,6 +668,66 @@ public class GLmain {
         return sb.toString();
     }
     
+    /**
+     * Return class source code for hadling EGL/GLES extension content, including 
+     * enumerations and functions.
+     *  <pre>
+     *  Extension is search by name, and can be partial.<br>
+     *  Example:
+     *   // How to get Enumerations and Functions related to GL_OES_mapbuffer
+     *   String extName = "GL_OES_mapbuffer";
+     *   String amdExtensions = glMain.asJavaExtension(extName);
+     *   
+     *   // how get all AMD related extensions, in java code      
+     *   String amdExtensions = glMain.asJavaExtension("AMD");
+     *  
+     *  </pre>
+     * @param extension - extension name
+     * @return String - source code for class wrapping an extension
+     */
+    public String asJavaClassExt(List<String> extensionNames, String classNameSugestion){      
+        Set<GLExtension> glExts = new HashSet<GLExtension>();
+        //get extensions java codes and the GLExtension
+        String extensions = asJavaExtension(extensionNames, glExts);
+        String midClassName = "Selected"; // extName2ClassName(extensionName);
+        String className = getAPI().toUpperCase()+ midClassName + "Ext";
+        
+        String jniHeader = asJavaJnigenHeader(extensionNames);
+        
+        StringBuilder sb = new StringBuilder(10*1024);
+        
+        sb.append("  /**\n   * Place holder for license disclaimer.\n   **/\n\n")
+          .append("    package gles.generated;\n\n")
+          .append("    import android.opengl.*;\n")
+          .append("\n\n")
+          .append("  /**\n   * \n");
+        
+          if(glExts.size()>1){
+              sb.append("   * Main extension: ").append("selection").append("<br>\n")
+                .append("   * Included extensions: ").append("<br>\n");
+          }
+          
+          for(GLExtension glExt : glExts){
+             createComments(glExt, sb);
+          }
+          sb.append("   * \n")
+            .append("   **/\n")
+            .append("   public class ").append(className).append("{\n")
+            .append(jniHeader)
+            .append(extensions)
+            .append("\n   }// end of class ").append(className)
+            .append("\n");
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Create some basic info about API.<br>
+     * Example:
+     *  "Extension EGL_EXTENSION_NAME, API: EGL "
+     * @param glExt
+     * @param sb
+     */
     private static void createComments(GLExtension glExt, StringBuilder sb){
        // int enumCount = glExt.getEnumCount();
        // int funcCount =  glExt.getFunctionCount();
@@ -569,7 +748,230 @@ public class GLmain {
         String api = resume;
       //  String glAPI = glExt.supportedAPI;
         
-        sb.append("   * Extension: ").append(api).append("\n");
+        sb.append("   * Extension: ").append(api).append(" <br>\n");
+    }
+    
+    /**
+     * Get corrent include for GLES2.0, up to GLES32
+     * @param api - one of GLES2 up to GLES32.
+     * @return a cpp include line
+     */
+    private String getGL2IncludeLine(GL_API api){        
+        if(!isGLES2Type(api)){
+            throw new UnsupportedOperationException("Must be a GL_API.GLES2 or higher!");
+        }
+        String gles2String = null;
+        // i am really restrict here
+        switch (api) {
+        case GLES2:  gles2String  =  "    #include <GLES2/gl2.h> \n"; break;
+        case GLES3:  gles2String  =  "    #include <GLES3/gl3.h> \n"; break;
+        case GLES31: gles2String  =  "    #include <GLES3/gl31.h> \n"; break;
+        case GLES32: gles2String  =  "    #include <GLES3/gl32.h> \n"; break;                
+        default:     gles2String  =  "    #include <GLES3/gl32.h> \n"; break;
+        }
+        return gles2String;
+    }
+    
+    /**
+     * Generate code for libGDX's jnigen header.<br>
+     * It's a comment like  / *JNI, but  used to define includes, statics, and functions.
+     * 
+     * @see #asJavaJnigenHeaderCore()
+     * @see #asJavaJnigenHeader(List)
+     * 
+     * @param extensionName - name can be full, partial or a regex. Use "none" to skip extension loading.
+     * @return java source code with jnigen header
+     */
+    public String asJavaJnigenHeader(String extensionName){
+        if (extensionName == null) {
+            extensionName = "";
+        }        
+        
+        if(extensionName.equalsIgnoreCase("none")){
+            return asJavaJnigenHeaderCore();
+        }
+                
+        StringBuilder sb = new StringBuilder(2*1024);
+        
+        sb.append("  // jnigen header\n");
+        sb.append("  //@OFF \n");
+        sb.append("  /*JNI \n");
+        
+        // declare EGL/GLES imports       
+        sb.append("  // include section\n");
+        if(api != GL_API.GL){
+            sb.append("  // EGL is included for all GL-ES api\n");
+            sb.append("    #define EGL_EGLEXT_PROTOTYPES 1\n");
+            sb.append("    #include <EGL/egl.h>\n");
+            sb.append("    #include <EGL/eglext.h>\n\n");
+            
+            if(api == GL_API.GLES1){
+                sb.append("  // GLES 1.x  api\n");
+                sb.append("    #define GL_GLEXT_PROTOTYPES 1 \n");
+                sb.append("    #include <GLES/egl.h>\n");
+                sb.append("    #include <GLES/gl.h>\n");
+                sb.append("    #include <GLES/glext.h>\n\n");                
+            }else if(isGLES2Type(api)){                               
+                sb.append("  // GLES 2.0+ api\n");
+                sb.append("    #define  GL_GLEXT_PROTOTYPES 1 \n");
+                
+                String gles2String = getGL2IncludeLine(api); 
+                sb.append(gles2String);
+                sb.append("    #include <GLES2/gl2ext.h> \n\n");
+            }
+        }
+        
+         // declare FUNC Pointers       
+        sb.append("  // function pointers section \n");
+        String funcPtr = asCFunctionExtPointers(extensionName, true);        
+        sb.append(funcPtr);
+        
+        
+        sb.append("  // extension loaders\n");
+        String funcLoaders = asCFunctionExtLoaders(extensionName, true);        
+        sb.append(funcLoaders);
+        
+        sb.append("");
+        sb.append("");
+        
+        sb.append("  */\n // end of jnigen header\n\n");
+        
+        sb.append("  static protected native void init();/* \n");
+        sb.append("    loadAll();\n");
+        sb.append("  */\n\n");
+        
+        sb.append("  /** loading native stuff */\n");
+        sb.append("  static{\n");
+        sb.append("    init();\n");
+        sb.append("  }\n\n");
+        
+        return sb.toString();
+    }
+    
+    
+    /**
+     * Generate code for libGDX's jnigen header.<br>
+     * It's a comment like  / *JNI, but  used to define includes, statics, and functions.
+     * 
+     * 
+     * @return
+     */
+    public String asJavaJnigenHeaderCore(){
+                
+        StringBuilder sb = new StringBuilder(2*1024);
+        
+        sb.append("  // jnigen header\n");
+        sb.append("  //@OFF \n");
+        sb.append("  /*JNI \n");
+        
+        // declare EGL/GLES imports       
+        sb.append("  // include section\n");
+        if(api != GL_API.GL){
+            sb.append("  // EGL is included for all GL-ES api\n");
+            sb.append("    #define EGL_EGLEXT_PROTOTYPES 1\n");
+            sb.append("    #include <EGL/egl.h>\n");
+            sb.append("    #include <EGL/eglext.h>\n\n");
+            
+            if(api == GL_API.GLES1){
+                sb.append("  // GLES 1.x  api\n");
+                sb.append("    #define GL_GLEXT_PROTOTYPES 1 \n");
+                sb.append("    #include <GLES/egl.h>\n");
+                sb.append("    #include <GLES/gl.h>\n");
+                sb.append("    #include <GLES/glext.h>\n\n");                
+            }else if(isGLES2Type(api)){                               
+                sb.append("  // GLES 2.0+ api\n");
+                sb.append("    #define  GL_GLEXT_PROTOTYPES 1 \n");
+                
+                String gles2String = getGL2IncludeLine(api); 
+                sb.append(gles2String);
+                sb.append("    #include <GLES2/gl2ext.h> \n\n");
+            }
+        }
+       
+        sb.append("  */\n\n");
+        
+        sb.append("  static protected native void init();/* \n");
+        sb.append("    //some native init\n\n");
+        sb.append("  */\n\n");
+        
+        sb.append("  /** loading native stuff */\n");
+        sb.append("  static{\n");
+        sb.append("    init();\n");
+        sb.append("  }\n\n");
+        
+        return sb.toString();
+    }
+    
+    
+    
+    /**
+     * Generate code for libGDX's jnigen header.<br>
+     * It's a comment like  / *JNI, but  used to define includes, statics, and functions.
+     * 
+     * @see #asCFunctionExtPointers(List, boolean)
+     * @see #asCFunctionExtLoaders(List, boolean)
+     * 
+     * @param extensionNames - List of <b>exactly</b> extension names to load.
+     * @return source code for Java classes
+     */
+    public String asJavaJnigenHeader(List<String> extensionNames){
+          
+                
+        StringBuilder sb = new StringBuilder(2*1024);
+        
+        sb.append("  // jnigen header\n");
+        sb.append("  //@OFF \n");
+        sb.append("  /*JNI \n");
+        
+        // declare EGL/GLES imports       
+        sb.append("  // include section\n");
+        if(api != GL_API.GL){
+            sb.append("  // EGL is included for all GL-ES api\n");
+            sb.append("    #define EGL_EGLEXT_PROTOTYPES 1\n");
+            sb.append("    #include <EGL/egl.h>\n");
+            sb.append("    #include <EGL/eglext.h>\n\n");
+            
+            if(api == GL_API.GLES1){
+                sb.append("  // GLES 1.x  api\n");
+                sb.append("    #define GL_GLEXT_PROTOTYPES 1 \n");
+                sb.append("    #include <GLES/egl.h>\n");
+                sb.append("    #include <GLES/gl.h>\n");
+                sb.append("    #include <GLES/glext.h>\n\n");                
+            }else if(isGLES2Type(api)){                               
+                sb.append("  // GLES 2.0+ api\n");
+                sb.append("    #define  GL_GLEXT_PROTOTYPES 1 \n");
+                
+                String gles2String = getGL2IncludeLine(api); 
+                sb.append(gles2String);
+                sb.append("    #include <GLES2/gl2ext.h> \n\n");
+            }
+        }
+        
+         // declare FUNC Pointers       
+        sb.append("  // function pointers section \n");
+        String funcPtr = asCFunctionExtPointers(extensionNames, true);        
+        sb.append(funcPtr);
+        
+        
+        sb.append("  // extension loaders\n");
+        String funcLoaders = asCFunctionExtLoaders(extensionNames, true);        
+        sb.append(funcLoaders);
+        
+        sb.append("");
+        sb.append("");
+        
+        sb.append("  */\n // end of jnigen header\n\n");
+        
+        sb.append("  static protected native void init();/* \n");
+        sb.append("    loadAll();\n");
+        sb.append("  */\n\n");
+        
+        sb.append("  /** loading native stuff */\n");
+        sb.append("  static{\n");
+        sb.append("    init();\n");
+        sb.append("  }\n\n");
+        
+        return sb.toString();
     }
     
     /**
@@ -694,6 +1096,91 @@ public class GLmain {
     }
     
     /**
+     * Creates a Java Extension class from a list of extension names
+     * @param extensionNames - list of extensions names
+     * @param extList - a null or empty list of GLExtensions used 
+     * 
+     * @return String with generated source code
+     */
+    public String asJavaExtension(List<String> extensionNames, Collection<GLExtension> extList) {
+        //String extName = extension.trim().toLowerCase();
+
+        StringBuilder sb = new StringBuilder(2 * 1024);
+        // Extensions as JavaString
+        for (GLExtension glExt : glesExt) {
+            String glExtName = glExt.name.trim();
+            if (extensionNames.contains(glExtName)) {
+                glExt.setJavaAPIMode(getAPI());
+                String extensionsAsJavaString = glExt.asJavaString();
+                sb.append(extensionsAsJavaString);
+                if(extList != null && !extList.contains(glExt)){
+                    extList.add(glExt);
+                }
+            }
+        }
+        return sb.toString();
+    }
+    
+    
+    /**
+     * Return  extension content, including enumerations and functions.<br>  
+     *  Extensions are loaded by name, from a Collection.<br>
+     *  <pre>
+     *  <b>Example 1</b>
+     *   // How to get Enumerations and Functions related to GL_OES_mapbuffer
+     *   String[] exts = {"EGL_KHR_config_attribs","EGL_KHR_lock_surface"};
+     *   Collection<String> extensions = Arrays.asList(exts);
+     *   String someExtensions = glMain.asJavaExtension(extName);
+     *   
+     *   <b>Example 2</b>
+     *   // how get all AMD related extensions, in java code ?  
+     *   List<String> amdNames  = queryExtensionNames("AMD");  
+     *   String amdExtensions = glMain.asJavaExtension(amdNames);
+     *
+     *    <b>Example 3</b>
+     *   // how get all AMD related extensions, in java code ?     
+     *   String amdExtensions = glMain.asJavaExtension("AMD");
+     *   
+     *   @see #queryExtensionNames(String)
+     *   @see #asJavaExtension(String)
+     *   @see #asJavaExtension(String, Collection)
+     *  </pre>
+     * @param extension - collection of extension name 
+     */
+    public String asJavaExtension(Collection<String> extensionNames) {       
+        
+        Collection<GLExtension> extList = new ArrayList<GLExtension>();
+
+        StringBuilder sb = new StringBuilder(2 * 1024);
+        // Extensions as JavaString
+        for (GLExtension glExt : glesExt) {
+            String glExtName = glExt.name.trim();
+            if (extensionNames.contains(glExtName)) {
+                glExt.setJavaAPIMode(getAPI());
+                String extensionsAsJavaString = glExt.asJavaString();
+                sb.append(extensionsAsJavaString);
+                if(extList != null && !extList.contains(glExt)){
+                    extList.add(glExt);
+                }
+            }
+        }
+        return sb.toString();
+    }
+    
+    
+    /**
+     * check is a GL_API is a GLES2.0+ class api 
+     * @param api
+     * @return
+     */
+    public static boolean isGLES2Type(GL_API api){
+       return (api == GL_API.GLES2) || 
+              (api == GL_API.GLES3) ||
+              (api == GL_API.GLES31) ||
+              (api == GL_API.GLES32);
+    }
+    
+    /**
      * Generate a C++ class to load extension Functions 
      * @return C++ source code
      */
@@ -701,16 +1188,16 @@ public class GLmain {
         String className = getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
         if(api==GL_API.EGL){
-            sb.append("#define  EGL_EGLEXT_PROTOTYPES \n");
+            sb.append("#define  EGL_EGLEXT_PROTOTYPES 1 \n");
             sb.append("#include <EGL/egl.h> \n");
             sb.append("#include <EGL/eglext.h> \n");
-        } // GL_GLEXT_PROTOTYPES
-        else if(api==GL_API.GLES2){
-            sb.append("#define  GL_GLEXT_PROTOTYPES \n");
+        } 
+        else if( isGLES2Type(api) /*api==GL_API.GLES2*/ ){
+            sb.append("#define  GL_GLEXT_PROTOTYPES 1 \n");
             sb.append("#include <GLES3/gl32.h> \n");
             sb.append("#include <GLES2/gl2ext.h> \n");
         } else if(api==GL_API.GLES1){
-            sb.append("#define  GL_GLEXT_PROTOTYPES \n");
+            sb.append("#define  GL_GLEXT_PROTOTYPES 1 \n");
             sb.append("#include <GLES/gl.h> \n" );
             sb.append("#include <GLES/glext.h> \n");
         }
@@ -720,13 +1207,13 @@ public class GLmain {
         
         // variables
         sb.append("     public:\n");
-        String fntProc = asCFunctionExtPointers();
+        String fntProc = asCFunctionExtPointers(false);
         sb.append(fntProc);
         
         //methods
         sb.append("\n");
         sb.append("     public:\n");
-        String loaders = asCFunctionExtLoaders();
+        String loaders = asCFunctionExtLoaders(false);
         sb.append(loaders);
         
         sb.append("\n");
@@ -753,7 +1240,7 @@ public class GLmain {
             sb.append("#include <EGL/egl.h> \n");
             sb.append("#include <EGL/eglext.h> \n");
         } // GL_GLEXT_PROTOTYPES
-        else if(api==GL_API.GLES2){
+        else if(isGLES2Type(api) /* api==GL_API.GLES2*/){
             sb.append("#define  GL_GLEXT_PROTOTYPES \n");
             sb.append("#include <GLES3/gl32.h> \n");
             sb.append("#include <GLES2/gl2ext.h> \n");
@@ -768,13 +1255,13 @@ public class GLmain {
         
         // variables
         sb.append("     public:\n");
-        String fntProc = asCFunctionExtPointers(extension);
+        String fntProc = asCFunctionExtPointers(extension,false);
         sb.append(fntProc);
         
         //methods
         sb.append("\n");
         sb.append("     public:\n");
-        String loaders = asCFunctionExtLoaders(extension);
+        String loaders = asCFunctionExtLoaders(extension, false);
         sb.append(loaders);
         
 //        sb.append("\n");
@@ -836,7 +1323,10 @@ public class GLmain {
          switch (api) {
          case EGL:   mask = EGL_MASK;    break;
          case GLES1: mask = GLES1_MASK;  break;
-         case GLES2: mask = GLES2_MASK;  break;
+         case GLES2:
+         case GLES3:
+         case GLES31:
+         case GLES32:mask = GLES2_MASK;  break;
          case GL:    mask = GL_MASK;     break;        
         }         
          mask = mask.toLowerCase();
@@ -1008,18 +1498,20 @@ public class GLmain {
      * @param args
      */
     public static void main(String[] args) {
-        GLmain gl = new GLmain("", GL_API.EGL);
+        GLmain gl = new GLmain("", GL_API.GLES2);
 
-        boolean testFunctionPointers = true;
+        boolean testFunctionPointers = false;
         boolean testQueryExt = false;
-        boolean testFunctionLoaders = true;
+        boolean testFunctionLoaders = false;
         boolean testAllLoaders = false;
-        boolean testCclass = true;
+        boolean testCclass = false;
         boolean testFeaturesNames = false;
         boolean testCore = false;
         boolean testJavaClass = false;
-        boolean testSingleClassExt = true;
+        boolean testSingleClassExt = false;
         boolean testAsJavaCore = false;
+        boolean testJNIgenHeader = false;
+        boolean testClassExtSelec = true;
         
         if(testQueryExt){                       
             String regex = "Q";
@@ -1039,16 +1531,16 @@ public class GLmain {
             print("regex: " + regex);
             print(gl.queryExtensionNames(regex));
         }
-        String ext = "EGL_EXT_device_enumeration";
+        String ext = "AMD";
         if (testFunctionPointers) {
             
-            String pointers = gl.asCFunctionExtPointers(ext);
+            String pointers = gl.asCFunctionExtPointers(ext, true);
             System.out.println(pointers);
         }
 
         if (testFunctionLoaders) {
-            String pfnLoaders = gl.asCFunctionExtLoaders(ext);
-            System.err.println("\n\n// asCFunctionLoaders\n " + pfnLoaders);
+            String pfnLoaders = gl.asCFunctionExtLoaders(ext,true);
+            System.out.println("\n\n// asCFunctionLoaders\n " + pfnLoaders);
         }
 
         if (testAllLoaders) {
@@ -1072,7 +1564,6 @@ public class GLmain {
             for (GLFeature glFeature : features) {
                 System.out.println("feature: " + glFeature);
             }
-
         }
 
         if (testCore) {
@@ -1106,6 +1597,21 @@ public class GLmain {
             System.out.println(javaCore);
         }
     
+        if(testJNIgenHeader){
+            String header = gl.asJavaJnigenHeader("AMD");
+            System.err.println("// jnigen Header\n "+ header);
+        }
+        
+        if(testClassExtSelec){
+            List<String> listAMD = gl.queryExtensionNames("AMD");
+            List<String> listQCOM = gl.queryExtensionNames("QCOM");
+            
+            List<String> listAll = listAMD;
+            listAll.addAll(listQCOM);
+            
+            String javaClass = gl.asJavaClassExt(listAll, "GLES_EXTtest");
+            System.err.println("//Java ext\n\n" + javaClass);
+        }
     
 
     }

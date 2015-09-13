@@ -47,6 +47,8 @@ public class Extensions {
     
     /**
      * Perform lazy loading of Extensions
+     * @param extensionName - extension name
+     * @return a instance of required class.
      */
     public GlesExtension getExtension(String extensionName){
         try{

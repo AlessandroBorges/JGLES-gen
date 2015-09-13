@@ -1,5 +1,6 @@
 package gles.generator.gui;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
@@ -13,7 +14,11 @@ import javax.swing.JLabel;
 import java.awt.Font;
 
 
-
+/**
+ * Progress bar class
+ * @author Alessandro Borges
+ *
+ */
 @SuppressWarnings("serial")
 public class Progresso extends JDialog {
     private JLabel lbMessage;
@@ -21,14 +26,24 @@ public class Progresso extends JDialog {
     private JProgressBar progressBar;
     
     private Window owner = null;
+    private JButton bt = null;
     
     public Progresso(){
         init();
     }
     
+    /**
+     * 
+     * @param owner
+     */
     public Progresso(Window owner) {
+        this(owner, null);           
+    }
+    
+    public Progresso(Window owner, JButton bt) {
         super(owner);
         this.owner = owner;
+        this.bt = bt;
         init();   
     }
     

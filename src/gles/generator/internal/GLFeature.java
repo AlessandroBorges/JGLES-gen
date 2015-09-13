@@ -391,8 +391,7 @@ public class GLFeature
      * TODO return a List !
      * 
      * Get Java enumerations for a given API
-     * @param api one of EGL, GL, GLES1 or GLES2.
-     * @return
+     * @return get enumerations from this Feature
      */
     public String getJavaEnum(){
         String enums = "";
