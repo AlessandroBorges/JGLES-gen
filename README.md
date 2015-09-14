@@ -52,70 +52,124 @@ It will produce this code:
 To generate a Java binding, do this:
 ```java
     GLmain gl = new GLmain(GL_API.EGL);    
-    String javaClass = gl.asJavaClassExt();
+    String javaClass = gl.asJavaClassExt("EGL_EXT_device_enumeration");
     System.out.println(javaClass);
 
 ```
 
 To produce this code:
 ```java
+//Single Extension Java Class Creation
+  /**
+   * Place holder for license disclaimer.
+   **/
 
-  package gles.generated;
-  import android.opengl.*;
+    package gles.generated;
+    import android.opengl.*;
+  /**
+   * <pre>
+   * Extension: EGL_EXT_device_enumeration API: EGL, Enumerations: 0, Functions: 1 <br>
+   * </pre>
+   **/
+   public class EGLEGLEXTDeviceEnumerationExt{
+  // jnigen header
+  //@OFF 
+  /*JNI 
+  // include section
+  // EGL is included for all GL-ES api
+    #define EGL_EGLEXT_PROTOTYPES 1
+    #include <EGL/egl.h>
+    #include <EGL/eglext.h>
 
-/**
- * 
- * Extension: EGL_EXT_device_enumeration API: EGL, Enumerations: 0, Functions: 1
- * 
- */
- public class EGLEGLEXTDeviceEnumerationExt{
-// Function(s) for extension EGL_EXT_device_enumeration, API: egl   
+ ///////////////////////////////////
+  // PFN_PROC functions declaration 
+  // Extension: EGL_EXT_device_enumeration
+  // API: egl
+ //////////////////////////////////
+ static PFNEGLQUERYDEVICESEXTPROC	eglQueryDevicesEXT;  // extension loaders
+ 
+  // function loader
+  #define myFuncLoader(x) eglGetProcAddress(x)
 
- // TODO add some jnigen code  here
+ /// ====================================
+  // PFN_PROC Extensions functions Loader. 
+  // Extension: EGL_EXT_device_enumeration
+  // API: egl
+  /// =====================================/
+  static  int loadExtFuncEGL_EXT_device_enumeration(){
+      eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader("eglQueryDevicesEXT");
+      return 1;
+     } // end of loadExtFuncEGL_EXT_device_enumeration()
 
-/**
-*  Extension: EGL_EXT_device_enumeration
-*  
-* C Prototype:
-*   EGLBoolean eglQueryDevicesEXT ( 
-*              EGLint   max_devices,
-*              EGLDeviceEXT  * devices,
-*              EGLint  * num_devices
-*              );
-* 
-*/ 
-public final native static 
-boolean eglQueryDevicesEXT( int max_devices,
-                            long[]  devices, int devicesOffset,
-                            int [] num_devices, int num_devicesOffset);/*
-       // jnigen - native goes here
-         return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
-                                                (EGLDeviceEXT  *) (devices + devicesOffset),
-                                                (EGLint  *) (num_devices + num_devicesOffset));
-         */
 
-/**
-*  Extension: EGL_EXT_device_enumeration
-*  
-* C Prototype:
-*   EGLBoolean eglQueryDevicesEXT ( 
-*              EGLint   max_devices,
-*              EGLDeviceEXT  * devices,
-*              EGLint  * num_devices
-*              );
-* 
-*/ 
-public final native static 
-boolean eglQueryDevicesEXT( int max_devices,
-                           java.nio.LongBuffer devices, int devicesOffset,
-                           java.nio.IntBuffer num_devices, int num_devicesOffset); /*
-       // jnigen - native goes here
-         return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
-                                                (EGLDeviceEXT  *) (devices + devicesOffset),
-                                                (EGLint  *) (num_devices + num_devicesOffset));
-         */
+ // Declaration of loadALL(), to call all PFN_PROC pointers 
+ // Extension key "EGL_EXT_device_enumeration" 
+ static int loadALL(){
+	 loadExtFuncEGL_EXT_device_enumeration();
+       return 1;
+   } 
+  */ // end of jnigen header
 
- }// end of class EGLEGLEXTDeviceEnumerationExt
+  static protected native void init();/* 
+    loadAll();
+  */
+
+  /** loading native stuff */
+  static{
+    init();
+  }
+
+ // Function(s) for extension EGL_EXT_device_enumeration, API: egl   
+
+ /**<pre>
+  *  Extension: EGL_EXT_device_enumeration
+  *  
+  * C Prototype:
+  *   EGLBoolean eglQueryDevicesEXT ( 
+  * 		 EGLint   max_devices,
+  * 		 EGLDeviceEXT  * devices,
+  * 		 EGLint  * num_devices
+  * 		 );
+  * 
+  *</pre>
+  * See also https://www.khronos.org/registry/egl/extensions/EXT/EGL_EXT_device_enumeration.txt
+  **/ 
+ public final native static 
+  boolean eglQueryDevicesEXT( int max_devices,
+                              long[]  devices, int devicesOffset,
+                              int[] num_devices, int num_devicesOffset);/*
+	 // jnigen - native goes here
+  	   return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
+  	                                          (EGLDeviceEXT  *) (devices + devicesOffset),
+  	                                          (EGLint  *) (num_devices + num_devicesOffset));
+  	   */
+
+ /**<pre>
+  *  Extension: EGL_EXT_device_enumeration
+  *  
+  * C Prototype:
+  *   EGLBoolean eglQueryDevicesEXT ( 
+  * 		 EGLint   max_devices,
+  * 		 EGLDeviceEXT  * devices,
+  * 		 EGLint  * num_devices
+  * 		 );
+  * 
+  *</pre>
+  * See also https://www.khronos.org/registry/egl/extensions/EXT/EGL_EXT_device_enumeration.txt
+  **/ 
+ public final native static 
+ boolean eglQueryDevicesEXT( int max_devices,
+                             java.nio.LongBuffer devices, int devicesOffset,
+                             java.nio.IntBuffer num_devices, int num_devicesOffset); /*
+	 // jnigen - native goes here
+  	   return (jboolean)  eglQueryDevicesEXT( (EGLint) max_devices,
+  	                                          (EGLDeviceEXT  *) (devices + devicesOffset),
+  	                                          (EGLint  *) (num_devices + num_devicesOffset));
+  	   */
+
+   }// end of class EGLEGLEXTDeviceEnumerationExt
+
+
 
 ```
 
