@@ -6,7 +6,7 @@
 
     package gles.generated;
 
-    import android.opengl.*;
+   // import android.opengl.*;
 
 
   /**
@@ -1554,3 +1554,128 @@
 
    }// end of class GLES2SelectedExt
 
+  
+
+
+   /** <pre>
+    * 
+    * Main extension: selection<br>
+    * Included extensions: <br>
+    * Extension: EGL_ANGLE_window_fixed_size API: EGL, Enumerations: 1, Functions: 0 <br>
+    * Extension: EGL_ANGLE_surface_d3d_texture_2d_share_handle API: EGL, Enumerations: 1, Functions: 0 <br>
+    * Extension: EGL_ANGLE_d3d_share_handle_client_buffer API: EGL, Enumerations: 1, Functions: 0 <br> ok
+    * Extension: EGL_ANGLE_query_surface_pointer API: EGL, Enumerations: 0, Functions: 1 <br>
+    * Extension: EGL_ANGLE_device_d3d API: EGL, Enumerations: 2, Functions: 0 <br> ok
+    *</pre> 
+    **/
+     class EGLAngleSelected{
+     //@OFF 
+     /*JNI 
+     // EGL includes
+     #define EGL_EGLEXT_PROTOTYPES 1
+     #include <EGL/egl.h>
+     #include <EGL/eglext.h>
+
+   // function pointers section 
+    // Declaration of FuncPointer vars 
+
+
+  ///////////////////////////////////
+  // PFN_PROC functions declaration 
+  // Extension: EGL_ANGLE_query_surface_pointer
+  // API: egl
+  //////////////////////////////////
+      static PFNEGLQUERYSURFACEPOINTERANGLEPROC  eglQuerySurfacePointerANGLE;
+   // extension loaders
+   // function loader
+   #define myFuncLoader(x) eglGetProcAddress(x)
+
+    // Declaration of LOADERS for function pointers - PFN_PROC 
+
+   /// ====================================
+   // PFN_PROC Extensions functions Loader. 
+   // Extension: EGL_ANGLE_query_surface_pointer
+   // API: egl
+   /// =====================================
+   static  int loadExtFuncEGL_ANGLE_query_surface_pointer(){
+       eglQuerySurfacePointerANGLE = (PFNEGLQUERYSURFACEPOINTERANGLEPROC) myFuncLoader("eglQuerySurfacePointerANGLE");
+
+       return 1;
+      } // end of loadExtFuncEGL_ANGLE_query_surface_pointer()
+
+
+   // Declaration of loadALL(), to call all PFN_PROC pointers 
+  static int loadALL(){
+      loadExtFuncEGL_ANGLE_query_surface_pointer();
+        return 1;
+    } 
+
+    */ // JNI  header
+
+   static protected native void init();/* 
+     loadAll();
+   */
+
+   /** loading native stuff */
+   static{
+     init();
+   }
+
+     /**
+      * Enumeration for extension: EGL_ANGLE_d3d_share_handle_client_buffer
+      */
+     // enumerations: 
+      public static final int   EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE = 0x3200;
+
+  
+     /**
+      * Enumeration for extension: EGL_ANGLE_device_d3d
+      */
+     // enumerations: 
+      public static final int   EGL_D3D9_DEVICE_ANGLE = 0x33A0;
+      public static final int   EGL_D3D11_DEVICE_ANGLE = 0x33A1;
+
+  
+  // Function(s) for extension EGL_ANGLE_query_surface_pointer, API: egl   
+
+  /**<pre>
+   *  Extension: EGL_ANGLE_query_surface_pointer
+   *  
+   * C Prototype:
+   *   EGLBoolean eglQuerySurfacePointerANGLE ( 
+   *          EGLDisplay   dpy,
+   *          EGLSurface   surface,
+   *          EGLint   attribute,
+   *          void ** value
+   *          );
+   * 
+   *</pre>
+   * See also <a href="https://www.khronos.org/registry/egl/extensions/ANGLE/EGL_ANGLE_query_surface_pointer.txt">EGL_ANGLE_query_surface_pointer</a> 
+   **/ 
+  public final native static 
+  boolean eglQuerySurfacePointerANGLE( long dpy,
+                                       long surface,
+                                       int attribute,
+                                       java.nio.Buffer value, int valueOffset); /*
+      // jnigen - native goes here
+        return (jboolean)  eglQuerySurfacePointerANGLE( (EGLDisplay) dpy,
+                                                        (EGLSurface) surface,
+                                                        (EGLint) attribute,
+                                                        (void **) (value + valueOffset));
+        */
+     /**
+      * Enumeration for extension: EGL_ANGLE_surface_d3d_texture_2d_share_handle
+      */
+     // enumerations: 
+    //  public static final int   EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE = 0x3200;
+
+  
+     /**
+      * Enumeration for extension: EGL_ANGLE_window_fixed_size
+      */
+     // enumerations: 
+      public static final int   EGL_FIXED_SIZE_ANGLE = 0x3201;
+
+  
+
+    }// end of class EGLAngleSelected

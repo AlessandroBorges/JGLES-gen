@@ -1,43 +1,31 @@
 package gles.generator.gui;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.ListModel;
-
 import java.awt.BorderLayout;
-
-import javax.swing.JList;
-
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-
-import javax.swing.JLabel;
-
 import java.awt.Font;
-
-import javax.swing.SwingConstants;
-import javax.swing.border.BevelBorder;
-import javax.swing.JButton;
-
-import java.awt.Component;
-
-import javax.swing.Box;
-
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Vector;
 
-import net.miginfocom.swing.MigLayout;
-
+import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.MatteBorder;
-
-import java.awt.Color;
-
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 
 public class Palette extends JPanel {
@@ -46,34 +34,73 @@ public class Palette extends JPanel {
     private JLabel lblTitle;
     private JLabel lblAvailable;
     private JLabel lblSelected;
+    private JTextField tfFilter;
+    
+    private Vector<String> values = new Vector<String>();
     
     public Palette() {
         setLayout(new BorderLayout(0, 0));
         
-        JPanel panelTop = new JPanel();
-        add(panelTop, BorderLayout.NORTH);
+        JPanel panelCenter = new JPanel();
+        add(panelCenter, BorderLayout.CENTER);
+        panelCenter.setLayout(new BorderLayout(0, 0));
         
-        lblTitle = new JLabel("Title");
-        lblTitle.setHorizontalTextPosition(SwingConstants.CENTER);
-        lblTitle.setPreferredSize(new Dimension(300, 30));
-        lblTitle.setFont(new Font("Tahoma", Font.BOLD, 14));
-        panelTop.add(lblTitle);
+        JPanel panelCenterTop = new JPanel();
+        panelCenterTop.setPreferredSize(new Dimension(400, 36));
+        panelCenterTop.setSize(new Dimension(400, 36));
+        panelCenter.add(panelCenterTop, BorderLayout.NORTH);
+        panelCenterTop.setLayout(new FlowLayout(FlowLayout.LEADING, 5, 5));
+        
+        JLabel lblFilter = new JLabel("Filter: ");
+        lblFilter.setHorizontalAlignment(SwingConstants.CENTER);
+        lblFilter.setPreferredSize(new Dimension(40, 20));
+        panelCenterTop.add(lblFilter);
+        
+        tfFilter = new JTextField();
+        tfFilter.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                applyFilter();
+            }
+        });
+        tfFilter.setToolTipText("Filter extension");
+        tfFilter.setSize(new Dimension(40, 24));
+        tfFilter.setPreferredSize(new Dimension(40, 24));
+        panelCenterTop.add(tfFilter);
+        tfFilter.setColumns(16);
+        
+        JButton btnClear = new JButton("clear");
+        btnClear.setPreferredSize(new Dimension(63, 22));
+        btnClear.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                tfFilter.setText("");
+                applyFilter();
+            }
+        });
+        panelCenterTop.add(btnClear);
         
         JPanel panelMain = new JPanel();
+        panelCenter.add(panelMain, BorderLayout.CENTER);
         panelMain.setBorder(new TitledBorder(null, "Multi Selector", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        add(panelMain, BorderLayout.CENTER);
         panelMain.setLayout(new BoxLayout(panelMain, BoxLayout.X_AXIS));
         
         JPanel panelAvail = new JPanel();
         panelAvail.setPreferredSize(new Dimension(160, 200));
         panelMain.add(panelAvail);
         panelAvail.setLayout(new BorderLayout(0, 0));
-
         DefaultListModel<String> model = new DefaultListModel<String>();
-        listAvail = new JList<String>(model);
+        listAvail = new JList<String>();
+        listAvail.setModel(model);
+        
+        JScrollPane scrollPanel = new JScrollPane(listAvail, 
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPanel.setAutoscrolls(true);
+       
+        
         listAvail.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-        listAvail.setPreferredSize(new Dimension(100, 200));
-        panelAvail.add(listAvail);
+       // listAvail.setPreferredSize(new Dimension(100, 200));
+        panelAvail.add(scrollPanel);
         
         lblAvailable = new JLabel("Available");
         lblAvailable.setHorizontalAlignment(SwingConstants.CENTER);
@@ -87,7 +114,7 @@ public class Palette extends JPanel {
         panelButtons.setPreferredSize(new Dimension(50, 200));       
         
         Component verticalStrut_1 = Box.createVerticalStrut(20);
-        verticalStrut_1.setPreferredSize(new Dimension(40, 40));
+        verticalStrut_1.setPreferredSize(new Dimension(50, 40));
         verticalStrut_1.setSize(new Dimension(40, 40));
         panelButtons.add(verticalStrut_1);
         
@@ -96,9 +123,7 @@ public class Palette extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 copy(listAvail, listSelected, false);
             }
-        });
-        
-        
+        });               
         
         btnGoOne.setPreferredSize(new Dimension(50, 24));
         panelButtons.add(btnGoOne);
@@ -138,11 +163,19 @@ public class Palette extends JPanel {
         panelSelected.setPreferredSize(new Dimension(160, 200));
         panelMain.add(panelSelected);
         panelSelected.setLayout(new BorderLayout(0, 0));
+        
         model = new DefaultListModel<String>();
-        listSelected = new JList<String>(model);
+        listSelected = new JList<String>();        
+        listSelected.setModel(model);
+        
+        JScrollPane scrollPane2 = new JScrollPane(listSelected, 
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane2.setAutoscrolls(true);
+        
         listSelected.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-        listSelected.setPreferredSize(new Dimension(100, 200));
-        panelSelected.add(listSelected);
+      //  listSelected.setPreferredSize(new Dimension(100, 200));
+        panelSelected.add(scrollPane2);
         
         lblSelected = new JLabel("Selected");
         lblSelected.setFont(new Font("Tahoma", Font.BOLD, 12));
@@ -150,6 +183,18 @@ public class Palette extends JPanel {
         lblSelected.setHorizontalAlignment(SwingConstants.CENTER);
         lblSelected.setPreferredSize(new Dimension(41, 24));
         panelSelected.add(lblSelected, BorderLayout.NORTH);
+        
+        JPanel panelTop = new JPanel();
+        add(panelTop, BorderLayout.NORTH);
+        
+        lblTitle = new JLabel("Title");
+        lblTitle.setHorizontalTextPosition(SwingConstants.CENTER);
+        lblTitle.setPreferredSize(new Dimension(300, 30));
+        lblTitle.setFont(new Font("Tahoma", Font.BOLD, 14));
+        panelTop.add(lblTitle);
+
+       // DefaultListModel<String> model = new DefaultListModel<String>();
+       
         
         JPanel panelSouth = new JPanel();
         add(panelSouth, BorderLayout.SOUTH);
@@ -160,6 +205,7 @@ public class Palette extends JPanel {
      * @param options
      */
     public void setAvailableList(List<String> options ){
+        this.values.addAll(options);
         DefaultListModel< String> avail = (DefaultListModel<String>) listAvail.getModel();
         for (String val : options) {
             avail.addElement(val);
@@ -171,12 +217,12 @@ public class Palette extends JPanel {
      * @return
      */
     public List<String> getSelected() {
-        Object[] values = listSelected.getSelectedValues();
-        List<String> list = new ArrayList<String>(values == null ? 1 : values.length);
-        if(values != null)
-        for (Object val : values) {
-            list.add((String) val);
-        }
+        DefaultListModel<String> model = (DefaultListModel<String>)listSelected.getModel();
+        int size = model.size();       
+        List<String> list = new ArrayList<String>(size);
+        for(int i=0; i<size; i++){
+            list.add(model.get(i));
+        }        
         return list;
     }
     
@@ -184,7 +230,7 @@ public class Palette extends JPanel {
      * Set Title
      * @param title
      */
-    public void setTitle(String title){
+    public void setPaletteTitle(String title){
         lblTitle.setText(title);
     }
     
@@ -261,6 +307,38 @@ public class Palette extends JPanel {
         src.setEnabled(true);
     }
     
+    /**
+     * Apply filter to available options
+     */
+    private void applyFilter(){
+        String strFilter = tfFilter.getText().trim().toLowerCase();
+        DefaultListModel<String> model = getModelInput();
+        if(strFilter.length()==0 && model.size() < values.size()){
+            model.clear();
+            for (String val : values) {
+                model.addElement(val);
+            }
+        }else{
+            model.clear();
+            for (String val : values) { 
+                String test = val.trim().toLowerCase();
+                if(test.contains(strFilter)){
+                    model.addElement(val);
+                }
+            }            
+        }
+    }
+    
+    /**
+     * Get available values
+     * @return
+     */
+    private DefaultListModel<String> getModelInput(){
+       return  (DefaultListModel<String>) listAvail.getModel();
+    }
+    
+    
+    
     public static void main(String[] args) {
         JFrame f = new JFrame("Multi");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -268,7 +346,7 @@ public class Palette extends JPanel {
         f.getContentPane().add(p, BorderLayout.CENTER);        
         f.setSize(500, 600);
         
-        String[] names = {"A", "B", "C","D","E","F"};
+        String[] names = {"ABC", "BCD", "CDE","DEF","EFG","FHI"};
         
         p.setAvailableList(Arrays.asList(names));
         

@@ -1,4 +1,6 @@
 package gles.generator.internal;
+import gles.generator.GLFeatureEnum;
+
 import java.util.*;
 
 /**
@@ -11,7 +13,7 @@ public class GLFeature
    implements Comparable<GLFeature> 
    {
     
-    private FeatureNameEnum featureName;
+    private GLFeatureEnum featureName;
     public static GLFeatureMap mapFeatures = new GLFeatureMap();
     
     public String api, name,  number, comment;
@@ -244,7 +246,7 @@ public class GLFeature
      * @param featureName - FEATURE_NAME to query
      * @return null or GLFeature instance, if available
      */
-    public static GLFeature getGLFeature(FeatureNameEnum featureName){
+    public static GLFeature getGLFeature(GLFeatureEnum featureName){
         String featName = featureName.getName();
         
         Set<String> keySet = mapFeatures.keySet();
@@ -331,17 +333,18 @@ public class GLFeature
         List<String> jFuncStringList = new ArrayList<String>();
         // function section
         for (Require require : requires) {
-            sb.append("    /* Core Require ");
-                if(require.profile != null){
+            // skip if no profile or comments
+            if (require.profile != null || require.comment != null) {
+                sb.append("    /* Core Require ");
+                if (require.profile != null) {
                     sb.append(", profile: ").append(require.profile);
-                } 
-                if(require.comment != null){
+                }
+                if (require.comment != null) {
                     sb.append(" comment: ").append(require.comment);
                 }
-            
-            sb.append("   */\n");
-            
-            
+                sb.append("   */\n");
+            }
+
             Map<String, GLFunction> mapDatabase = require.getJavaMapFunctions();//getJavaStringFunctionsMap(apiMode);
             List<GLFunction> funcs = require.getFunctions();
             
@@ -353,7 +356,7 @@ public class GLFeature
                 // loop on possible java versions of this func
                 for(String asJavaString : jFuncStringList){
                     sb.append("\n")
-                    .append(" /**\n")
+                    .append(" /**<pre>\n")
                     .append("  *  Core: ").append(this.name == null?  " ? ": this.name ).append('\n');
                      
                     if(require.comment != null)
@@ -367,7 +370,8 @@ public class GLFeature
                     
                     sb   .append("  *  C Prototype:")
                     .append(GLExtension.addIdentLines(cProto,"* "))   // create function to add * after new line
-                    .append("\n  **/ \n");
+                    .append("\n  * </pre> \n")
+                    .append("\n  */ \n");
                     
                     sb.append(" public final native static ");
                     sb.append(asJavaString)
@@ -387,22 +391,32 @@ public class GLFeature
     
     
    
-    /**
-     * TODO return a List !
-     * 
+    /**      
      * Get Java enumerations for a given API
      * @return get enumerations from this Feature
      */
     public String getJavaEnum(){
-        String enums = "";
+        StringBuilder enums = new StringBuilder();
         
         for(Require require : listRequires){
-            enums += require.getJavaEnums();
+            enums.append(require.getJavaEnums());
         }    
-        
-        return enums;
+        return enums.toString();
     }
     
+    /**
+     * get Java Enumerations as a Collection
+     * @return
+     */
+    public Collection<String> getJavaEnumList(){        
+        Collection<String> list = new HashSet<String>();
+        
+        for(Require require : listRequires){
+            require.getJavaEnumsCol(list);
+        }    
+        
+        return list;
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -461,6 +475,39 @@ public class GLFeature
             }        
            return sb.toString();        
         }
+        
+        /**
+         * Get enumerations as a collection.<br>
+         * Note that listEnum is in/out paramenter, and should not be null.<br>
+         * It returns a string with 
+         * 
+         * @param listEnum - [in/out] - Collection to be filled with enumerations 
+         * @return enumeration info.
+         */
+        public String getJavaEnumsCol(Collection<String> listEnum){                                   
+            StringBuilder sb = new StringBuilder();
+            if (this.enumerations != null && enumerations.size()>0) {
+                sb.append("    // enumerations ");
+                
+                if(name != null){
+                    sb.append(" feature name: ");
+                    sb.append(name);
+                    sb.append(" ");
+                }
+                if(comment != null) 
+                    sb.append(this.comment);
+                if(this.profile != null)
+                    sb.append(" Profile: ").append(this.profile);
+                
+                sb.append("\n");
+                
+                for(GLenum glObject : enumerations){                
+                 listEnum.add(glObject.asJavaString());
+                }
+            }        
+           return sb.toString();        
+        }
+        
         
         /**
          * Return the functions as Java methods, with related GLFunction attached

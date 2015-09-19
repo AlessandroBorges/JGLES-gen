@@ -15,8 +15,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.web.PopupFeatures;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -25,7 +28,7 @@ import javax.swing.SwingUtilities;
 @SuppressWarnings("serial")
 public class WebViewPanel extends JPanel  {
     
-    static boolean DEBUG = true;
+    static boolean DEBUG = false;
 
     private Browser browser;
     private Scene scene;
@@ -151,7 +154,7 @@ public class WebViewPanel extends JPanel  {
         
         @Override
         public void run() {                 
-            while(browser == null){
+            while(browser == null || ( browser != null && !browser.isVisible())){
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {
@@ -162,8 +165,16 @@ public class WebViewPanel extends JPanel  {
             if(DEBUG)
                 System.err.println("MyRun debug: " + _data );
             switch(_operation){
-            case SET_CONTENT: browser.setContent(_data); break;
-            case SET_URL : browser.loadURL(_data);break;
+            case SET_CONTENT:  
+                if(DEBUG)
+                    System.err.println("MyRun debug: setContent." );
+                browser.setContent(_data); 
+                break;
+            case SET_URL :
+                if(DEBUG)
+                    System.err.println("MyRun debug: loadUrl." );
+                browser.loadURL(_data);
+                break;
             }
         }
     }
@@ -186,6 +197,16 @@ public class WebViewPanel extends JPanel  {
             // apply the styles
             getStyleClass().add("browser");
             getChildren().add(_browser);
+            webEngine.setCreatePopupHandler(new javafx.util.Callback<PopupFeatures, WebEngine>() {
+                @Override
+                public WebEngine call(PopupFeatures p) {
+                    Stage stage = new Stage(StageStyle.UTILITY);
+                    WebView wv2 = new WebView();
+                    stage.setScene(new Scene(wv2));
+                    stage.show();
+                    return wv2.getEngine();
+                }
+            });
         }
 
         /**
@@ -279,7 +300,7 @@ public class WebViewPanel extends JPanel  {
 
         frame.setLocationByPlatform(true);
         frame.setVisible(true);
-        webPanel.setURL("http://www.google.com");
+        webPanel.setURL("file:///C:/Users/alessandroob/AppData/Local/Temp/GLESgen/Hello.java.html");
         //webPanel.setContent("<HTML><h2>Hello, World !</h2></html>");
     }
 }

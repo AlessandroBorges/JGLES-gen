@@ -11,8 +11,243 @@ public class GLExtension
  implements JavaPrinter, Comparable<GLExtension>
 
 {    
-    public String name;   
+    
+    protected static final String KHRONOS_GL = "https://www.khronos.org/registry/gl/extensions/";
+    protected static final String KHRONOS_GLES = "https://www.khronos.org/registry/gles/extensions/";
+    protected static final String KHRONOS_EGL  = "https://www.khronos.org/registry/egl/extensions/";
+    protected static final String[] GLES_EXTENSION_GROUP = {"AMD","ANDROID","ANGLE","APPLE",
+                                                            "ARM","DMP","EXT","FJ","IMG","INTEL",
+                                                            "KHR","NV","OES","OVR","QCOM","VIV" };
+    
+    /**
+     * Must values are strict, but some values are guessed, as INTEL, APPLE and QCOM. They are major players, 
+     * and may add extension to EGL api soon or later.
+     */
+    protected static final String[] EGL_EXTENSION_GROUP = {"ANDROID","ANGLE","APPLE",
+                                                            "ARM","EXT","HI","IMG","KHR","INTEL",
+                                                            "MESA","NOK","NV","TIZEN",
+                                                            "NV","OES","QCOM","VIV" };
+    
+    /**
+     * extension names with buggy filenames at https://www.khronos.org/registry/
+     */
+    public static final String[] NAME_BUG = { "AMD_performance_monitor", "APPLE_rgb_422", 
+            "EXT_blend_minmax",
+            "EXT_draw_instanced", "EXT_multi_draw_arrays", "EXT_post_depth_coverage", "EXT_raster_multisample",
+            "EXT_shader_integer_mix", "EXT_texture_compression_dxt1", "EXT_texture_compression_s3tc",
+            "EXT_texture_filter_anisotropic", "EXT_texture_filter_minmax", "EXT_texture_lod_bias",
+            "EXT_texture_sRGB_decode", 
+            "FJ_shader_binary_GCCSO", 
+            "INTEL_framebuffer_CMAA", "INTEL_performance_query",
+            "KHR_blend_equation_advanced", "KHR_context_flush_control", "KHR_debug", "KHR_no_error", "KHR_robustness",
+            "KHR_robust_buffer_access_behavior", "KHR_texture_compression_astc_hdr", "NV_bindless_texture",
+            "NV_blend_equation_advanced", "NV_conditional_render", "NV_conservative_raster", "NV_draw_texture",
+            "NV_EGL_NV_coverage_sample", "NV_EGL_NV_depth_nonlinear", "NV_fence", "NV_fill_rectangle",
+            "NV_fragment_coverage_to_color", "NV_fragment_shader_interlock", "NV_framebuffer_mixed_samples",
+            "NV_geometry_shader_passthrough", "NV_internalformat_sample_query", "NV_NV_3dvision_settings", "NV_NV_bgr",
+            "NV_NV_copy_buffer", "NV_NV_draw_buffers", "NV_NV_draw_instanced", "NV_NV_EGL_stream_consumer_external",
+            "NV_NV_explicit_attrib_location", "NV_NV_fbo_color_attachments", "NV_NV_framebuffer_blit",
+            "NV_NV_framebuffer_multisample", "NV_NV_generate_mipmap_sRGB", "NV_NV_image_formats",
+            "NV_NV_instanced_arrays", "NV_NV_non_square_matrices", "NV_NV_packed_float", "NV_NV_pack_subimage",
+            "NV_NV_pixel_buffer_object", "NV_NV_platform_binary", "NV_NV_polygon_mode", "NV_NV_read_buffer",
+            "NV_NV_read_depth_stencil", "NV_NV_shader_noperspective_interpolation", "NV_NV_shadow_samplers_array",
+            "NV_NV_shadow_samplers_cube", "NV_NV_sRGB_formats", "NV_NV_texture_array", "NV_NV_texture_border_clamp",
+            "NV_NV_texture_compression_latc", "NV_NV_texture_compression_s3tc",
+            "NV_NV_texture_compression_s3tc_update", "NV_NV_texture_npot_2D_mipmap", "NV_NV_viewport_array",
+            "NV_path_rendering", "NV_path_rendering_shared_edge", "NV_sample_locations",
+            "NV_sample_mask_override_coverage", "NV_viewport_array2",
+            "OES_EGL_KHR_fence_sync",
+            "OVR_multiview","OVR_multiview2", 
+    };
+    
+    /**
+     * String key for Android AEP<br> 
+     * See more: <a href="https://www.khronos.org/registry/gles/extensions/ANDROID/ANDROID_extension_pack_es31a.txt">ANDROID_extension_pack_es31a</a>
+     * <br>
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String ANDROID_EXTENSION_PACK = "GL_ANDROID_extension_pack_es31a";
+    
+    /**
+     * String key for extensions used in GL10 interface, as defined by JSR 239<br>
+     * See more: <a href="http://docs.oracle.com/javame/config/cldc/opt-pkgs/api/jb/jsr239/">JSR 239</a>
+     * @see #JSR239_EXTENSIONS_GL10
+     * @see #extensionGroupMap 
+     * @see #getExtensionGroup(String)   
+     */
+    public static final String GL10_EXT_GROUP = "GL10";
+    
+    /**
+      * String key for extensions used in GL10Ext interface, as defined by JSR 239<br>
+     * See more: <a href="http://docs.oracle.com/javame/config/cldc/opt-pkgs/api/jb/jsr239/">JSR 239</a>
+     * @see #JSR239_EXTENSIONS_GL10Ext  
+     * @see #extensionGroupMap 
+     * @see #getExtensionGroup(String)
+     */
+    public static final String GL10Ext_EXT_GROUP = "GL10Ext";
+    
+    /**
+      * String key for extensions used in GL11 interface, as defined by JSR 239<br>
+     * See more: <a href="http://docs.oracle.com/javame/config/cldc/opt-pkgs/api/jb/jsr239/">JSR 239</a>
+     * @see #JSR239_EXTENSIONS_GL11 
+     * @see #extensionGroupMap 
+     * @see #getExtensionGroup(String) 
+     */
+    public static final String GL11_EXT_GROUP = "GL11";
+    
+    /**
+      * String key for extensions used in GL11Ext interface, as defined by JSR 239<br>
+     * See more: <a href="http://docs.oracle.com/javame/config/cldc/opt-pkgs/api/jb/jsr239/">JSR 239</a>
+     * @see #JSR239_EXTENSIONS_GL11Ext 
+     * @see #extensionGroupMap 
+     * @see #getExtensionGroup(String)  
+     */
+    public static final String GL11Ext_EXT_GROUP = "GL11Ext";
+    
+    /**
+     * String key for extensions used in GL11ExtensionPack, as defined by JSR 239<br>
+     * See more: <a href="http://docs.oracle.com/javame/config/cldc/opt-pkgs/api/jb/jsr239/">JSR 239</a>
+     * @see #JSR239_EXTENSIONS_GL11ExtensionPack  
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String) 
+     */
+    public static final String GL11ExtensionPack_EXT_GROUP = "GL11ExtensionPack";
+    
+    /**
+     * Android Extension Pack - list of required extensions.<br>   
+     * See more: <a href="https://www.khronos.org/registry/gles/extensions/ANDROID/ANDROID_extension_pack_es31a.txt">ANDROID_extension_pack_es31a</a>
+     * <br>
+     * @see GLExtension#ANDROID_EXTENSION_PACK
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String[] AEP_EXTENSIONS = { "GL_KHR_debug",
+        "GL_KHR_texture_compression_astc_ldr",
+        "GL_KHR_blend_equation_advanced",
+        "GL_OES_sample_shading",
+        "GL_OES_sample_variables",
+        "GL_OES_shader_image_atomic",
+        "GL_OES_shader_multisample_interpolation",
+        "GL_OES_texture_stencil8",
+        "GL_OES_texture_storage_multisample_2d_array" ,
+        "GL_EXT_copy_image",
+        "GL_EXT_draw_buffers_indexed",
+        "GL_EXT_geometry_shader",
+        "GL_EXT_gpu_shader5",
+        "GL_EXT_primitive_bounding_box",
+        "GL_EXT_shader_io_blocks",
+        "GL_EXT_tessellation_shader",
+        "GL_EXT_texture_border_clamp",
+        "GL_EXT_texture_buffer",
+        "GL_EXT_texture_cube_map_array",
+        "GL_EXT_texture_sRGB_decode"};
+    
+    /**
+     * JSR 239 defined extensions to GL10 and GL11 api.<br>
+     * GL10 has the following extensions: 
+     * <pre> 
+     * OES_byte_coordinates
+     * OES_single_precision
+     * OES_fixed_point
+     * OES_read_format
+     * OES_compressed_paletted_texture
+     * </pre>
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String[] JSR239_EXTENSIONS_GL10 = {"OES_byte_coordinates",
+        "OES_single_precision",
+        "OES_fixed_point",
+        "OES_read_format",
+        "OES_compressed_paletted_texture",};
+    
+    /**
+     * JSR 239 defined extensions to GL10 and GL11 api.<br>
+     * GL10Ext has the following extensions: 
+     * <p> 
+     *  OES_query_matrix
+     * </p>
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String[] JSR239_EXTENSIONS_GL10Ext= {"OES_query_matrix"};
+    
+    /**
+     * JSR 239 defined extensions to GL10 and GL11 api.<br>
+     * GL11 has the following extensions:
+     * <pre>
+     * OES_matrix_get
+     * OES_point_sprite
+     * OES_point_size_array
+     * </pre>
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String[] JSR239_EXTENSIONS_GL11= {"OES_matrix_get",
+        "OES_point_sprite",
+        "OES_point_size_array"};
+    
+    /**
+     * JSR 239 defined extensions to GL10 and GL11 api.<br>
+     * GL11ext has the following extensions: 
+     * <pre>
+     * OES_draw_texture
+     * OES_matrix_palette
+     * </pre>
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String[] JSR239_EXTENSIONS_GL11Ext= {"OES_draw_texture","OES_matrix_palette"};
+    
+    /**
+     * JSR 239 defined extensions to GL10 and GL11 api.<br>
+     * GL11ExtensionPack has the following extensions:
+     * <pre>
+     *     OES_texture_env_crossbar
+     *     OES_texture_mirrored_repeat
+     *     OES_texture_cube_map
+     *     OES_blend_subtract
+     *     OES_blend_func_separate
+     *     OES_blend_equation_separate
+     *     OES_stencil_wrap
+     *     OES_extended_matrix_palette
+     *     OES_framebuffer_object
+     * </pre>
+     * @see #extensionGroupMap
+     * @see #getExtensionGroup(String)
+     */
+    public static final String[] JSR239_EXTENSIONS_GL11ExtensionPack= { "OES_texture_env_crossbar",
+        "OES_texture_mirrored_repeat",
+        "OES_texture_cube_map",
+        "OES_blend_subtract",
+        "OES_blend_func_separate",
+        "OES_blend_equation_separate",
+        "OES_stencil_wrap",
+        "OES_extended_matrix_palette",
+        "OES_framebuffer_object",};
+    
+    
    
+    /**
+     * Maps Extension per API. Currently we have the following extension key groups:
+     * <ul><li>{@link #ANDROID_EXTENSION_PACK}, 
+     * <li>{@link #GL10_EXT_GROUP}, 
+     * <li>{@link #GL10Ext_EXT_GROUP},
+     * <li>{@link #GL11_EXT_GROUP},
+     * <li>{@link #GL11Ext_EXT_GROUP}
+     * <li>{@link #GL11ExtensionPack_EXT_GROUP}
+     * </ul>  
+     * 
+     * @see #getExtensionGroup(String)
+     * 
+     */
+    public static Map<String, String[]> extensionGroupMap = new HashMap<String, String[]>();
+    
+
+   
+    public String name;   
+    
     public String supportedAPI, protect;
     
     public static final String FUNC_LOADER = "myFuncLoader";
@@ -22,8 +257,103 @@ public class GLExtension
     public List<GLExtensionRequire> requires = new ArrayList<GLExtensionRequire>(2);
     
     private Boolean isGL = null;
-   
-   
+    
+    static{
+        extensionGroupMap.put(ANDROID_EXTENSION_PACK, AEP_EXTENSIONS );
+        extensionGroupMap.put("aep", AEP_EXTENSIONS );
+        extensionGroupMap.put(GL10_EXT_GROUP, JSR239_EXTENSIONS_GL10 );
+        extensionGroupMap.put(GL10Ext_EXT_GROUP, JSR239_EXTENSIONS_GL10Ext );
+        extensionGroupMap.put(GL11_EXT_GROUP, JSR239_EXTENSIONS_GL11 );
+        extensionGroupMap.put(GL11Ext_EXT_GROUP, JSR239_EXTENSIONS_GL11Ext );
+        extensionGroupMap.put(GL11ExtensionPack_EXT_GROUP, JSR239_EXTENSIONS_GL11ExtensionPack );
+        
+    }
+    
+    /**
+     * Get a group of extensions, by name.<br>
+     * Khronos and Android defined some set of extensions, as following:
+     * <table border=2>
+     * <tr>
+     * <TH>API</TH> <TH>Extensions</TH>
+     * </tr>
+     * <tr>
+     * <td>AEP / ANDROID_EXTENSION_PACK</td>
+     * <td><pre>
+     *  KHR_debug,
+     *  KHR_texture_compression_astc_ldr,
+     *  KHR_blend_equation_advanced,
+     *  OES_sample_shading,
+     *  OES_sample_variables,
+     *  OES_shader_image_atomic,
+     *  OES_shader_multisample_interpolation,
+     *  OES_texture_stencil8,
+     *  OES_texture_storage_multisample_2d_array,
+     *  EXT_copy_image,
+     *  EXT_draw_buffers_indexed,
+     *  EXT_geometry_shader,
+     *  EXT_gpu_shader5,
+     *  EXT_primitive_bounding_box,
+     *  EXT_shader_io_blocks,
+     *  EXT_tessellation_shader,
+     *  EXT_texture_border_clamp,
+     *  EXT_texture_buffer,
+     *  EXT_texture_cube_map_array,
+     *  EXT_texture_sRGB_decode</pre>
+     *  </td>
+     * </tr>
+     * <TR>
+     * <TD> GL10 </td> 
+     * <TD><pre> OES_byte_coordinates
+     * OES_single_precision,
+     * OES_fixed_point,
+     * OES_read_format,
+     * OES_compressed_paletted_texture</pre></td>
+     * </TR>
+     * <tr>
+     * <td>GL10Ext</td>
+     * <td> OES_query_matrix</td>
+     * </tr>
+     * <tr>
+     * <td>GL11</td>
+     * <td><pre> OES_matrix_get,
+     * OES_point_sprite,
+     * OES_point_size_array</pre></td>
+     * </tr>
+     * <tr>
+     * <td>GL11Ext</td>
+     * <td> OES_draw_texture,
+     * OES_matrix_palette</td>
+     * </tr>
+     * <tr>
+     * <td>GL11ExtensionPack</td>
+     * <td><pre>
+     * OES_texture_env_crossbar,
+     * OES_texture_mirrored_repeat,
+     * OES_texture_cube_map,
+     * OES_blend_subtract,
+     * OES_blend_func_separate,
+     * OES_blend_equation_separate,
+     * OES_stencil_wrap,
+     * OES_extended_matrix_palette,
+     * OES_framebuffer_object</pre>
+     * </td>
+     * </tr>     
+     * </table>
+     * @param groupKey - key to extensions. One of 
+     * <ul><li>{@link #ANDROID_EXTENSION_PACK}, 
+     * <li>{@link #GL10_EXT_GROUP}, 
+     * <li>{@link #GL10Ext_EXT_GROUP},
+     * <li>{@link #GL11_EXT_GROUP},
+     * <li>{@link #GL11Ext_EXT_GROUP}
+     * <li>{@link #GL11ExtensionPack_EXT_GROUP}
+     * </ul>
+     * 
+     * @return String array with extension names
+     */
+    public static String[] getExtensionGroup(String groupKey){
+        return extensionGroupMap.get(groupKey);
+    }
+    
     /**
      * Add require to this Extension
      * @param require extension require to add
@@ -170,16 +500,16 @@ public class GLExtension
             
             sb.append("\n\n");
             sb.append(" ///////////////////////////////////\n");
-            sb.append("  // PFN_PROC functions declaration ");
+            sb.append(" // PFN_PROC functions declaration ");
             {
                 if (require.extName != null) {
-                    sb.append("\n  // Extension: ").append(require.extName);
+                    sb.append("\n // Extension: ").append(require.extName);
                 }
                 if (require.api != null) {
-                    sb.append("\n  // API: ").append(require.api);
+                    sb.append("\n // API: ").append(require.api);
                 }
                 if (require.profile != null) {
-                    sb.append("\n  // Profile: ").append(require.profile);
+                    sb.append("\n // Profile: ").append(require.profile);
                 }
             }
             sb.append("\n //////////////////////////////////");
@@ -190,7 +520,7 @@ public class GLExtension
                 String funcName = func.name;
                 sb.append(NTAB);
                 if(asStatic){
-                    sb.append("    static ");
+                    sb.append(" static ");
                 }else{
                     sb.append("  ");
                 } 
@@ -233,7 +563,7 @@ public class GLExtension
                 continue;
             
             sb.append("\n");
-            sb.append(" /// ====================================\n")
+            sb.append("  /// ====================================\n")
               .append("  // PFN_PROC Extensions functions Loader. ");
             {
                 if (require.extName != null) {
@@ -246,7 +576,7 @@ public class GLExtension
                     sb.append("\n  // Profile: ").append(require.profile);
                 }
             }
-            sb.append("\n  /// =====================================/\n");
+            sb.append("\n  /// =====================================\n");
             sb.append("");
             
             if(asStatic){
@@ -288,6 +618,8 @@ public class GLExtension
         if(loaderNames==null){
             loaderNames = new ArrayList<String>();
         }
+        checkRequestForGroupExtensions(loaderNames);
+        
         for (GLExtensionRequire require : requires) {
             List<GLFunction> funcs = require.getAllFunctions();
             // skip extensions without functions
@@ -299,7 +631,106 @@ public class GLExtension
         return loaderNames;
     }
     
+    /**
+     * <p>On GL-ES there are several groups of extensions, as
+     *  GL_ANDROID_extension_pack_es31a, GL10, GL10Ext, GL11Ext, GL11ExtensionsPack, etc.</p>
+     *  <p>
+     *  This method check if the extension list contains name of one of this group.
+     *  If found, the extension names are added to extension list. 
+     *  </p>    
+     *  <p>
+     *  
+     *  </p>
+     *  <p>    
+     * <b>GL_ANDROID_extension_pack_es31a</b> or <b>ANDROID_extension_pack_es31a</b> is 
+     *  a set of OpenGL ES extensions available for some OpenGL ES 3.1 renderers.<br>
+     *  
+     *  It is a umbrella extension, because it doesn't define any enumeration or function,
+     *  but if available, it means the following extensions are also supported:<br>
+     *  <pre>
+     *  KHR_debug
+     *  KHR_texture_compression_astc_ldr
+     *  KHR_blend_equation_advanced
+     *  OES_sample_shading
+     *  OES_sample_variables
+     *  OES_shader_image_atomic
+     *  OES_shader_multisample_interpolation
+     *  OES_texture_stencil8
+     *  OES_texture_storage_multisample_2d_array
+     *  EXT_copy_image
+     *  EXT_draw_buffers_indexed
+     *  EXT_geometry_shader
+     *  EXT_gpu_shader5
+     *  EXT_primitive_bounding_box
+     *  EXT_shader_io_blocks
+     *  EXT_tessellation_shader
+     *  EXT_texture_border_clamp
+     *  EXT_texture_buffer
+     *  EXT_texture_cube_map_array
+     *  EXT_texture_sRGB_decode
+     * </pre>
+     * </p>
+     * 
+     * @param extensionNames
+     *            - Collection of extensions names to load. If it contains
+     *            ANDROID_EXTENSION_PACK or &quot;aep&quot; , then all 20
+     *            required AEP extensions are loaded:
+     * 
+     * @return updated Collection with all extensions
+     */
+    public static Collection<String> checkRequestForGroupExtensions(Collection<String> extensionNames){
         
+        Set<String> keys = extensionGroupMap.keySet();        
+        List<String> groupKeys = contains(extensionNames, keys);
+        // skip if nothing to do
+        if(groupKeys.size()==0){
+            return extensionNames;
+        }
+        // remove duplicates and put then in order
+        Set<String> temp = new TreeSet<String>(extensionNames); 
+        
+        // check AEP
+//         if(groupKeys.contains(ANDROID_EXTENSION_PACK)
+//                 || groupKeys.contains("AEP")
+//                 || groupKeys.contains("aep"))
+//         {
+//             for(String aepExtension : GLExtension.AEP){                 
+//                 temp.add(aepExtension);
+//             }
+//             extensionNames.clear();
+//             extensionNames.addAll(temp);
+//             temp.clear();            
+//         }
+        
+         // process all groups
+         for(String key : groupKeys){
+             String[] extensions = extensionGroupMap.get(key);
+             for(String ext : extensions){
+                 temp.add(ext);
+             }             
+         }
+         extensionNames.clear();
+         extensionNames.addAll(temp);
+         temp.clear();            
+         
+         return extensionNames;
+     }
+    
+    /**
+     * Look for common values is two list.
+     * @param list - list to query
+     * @param subList - list of searching names
+     * @return Collection of names in both sublist and list. 
+     */
+     private static List<String> contains(Collection<String> list, Collection<String> subList){
+         List<String> result = new ArrayList<String>();
+         for (String value : subList) {
+            if(list.contains(value)){
+                result.add(value);
+            }
+        }         
+         return result;
+     }
    
 //    public List<String> asCforAllLoaders(String apiName){
 //        List<String> loaderNames = new ArrayList<String>();
@@ -330,54 +761,7 @@ public class GLExtension
         return PFN + funcName.trim().toUpperCase() + PROC;
     }
     
-    protected static final String KHRONOS_GL = "https://www.khronos.org/registry/gl/extensions/";
-    protected static final String KHRONOS_GLES = "https://www.khronos.org/registry/gles/extensions/";
-    protected static final String KHRONOS_EGL  = "https://www.khronos.org/registry/egl/extensions/";
-    protected static final String[] GLES_EXTENSION_GROUP = {"AMD","ANDROID","ANGLE","APPLE",
-                                                            "ARM","DMP","EXT","FJ","IMG","INTEL",
-                                                            "KHR","NV","OES","OVR","QCOM","VIV" };
-    
-    /**
-     * Must values are strict, but some values are guessed, as INTEL, APPLE and QCOM. They are major players, 
-     * and may add extension to EGL api soon or later.
-     */
-    protected static final String[] EGL_EXTENSION_GROUP = {"ANDROID","ANGLE","APPLE",
-                                                            "ARM","EXT","HI","IMG","KHR","INTEL",
-                                                            "MESA","NOK","NV","TIZEN",
-                                                            "NV","OES","QCOM","VIV" };
-    
-    /**
-     * extension names with buggy filenames at https://www.khronos.org/registry/
-     */
-    protected static final String[] NAME_BUG = { "AMD_performance_monitor", "APPLE_rgb_422", 
-            "EXT_blend_minmax",
-            "EXT_draw_instanced", "EXT_multi_draw_arrays", "EXT_post_depth_coverage", "EXT_raster_multisample",
-            "EXT_shader_integer_mix", "EXT_texture_compression_dxt1", "EXT_texture_compression_s3tc",
-            "EXT_texture_filter_anisotropic", "EXT_texture_filter_minmax", "EXT_texture_lod_bias",
-            "EXT_texture_sRGB_decode", 
-            "FJ_shader_binary_GCCSO", 
-            "INTEL_framebuffer_CMAA", "INTEL_performance_query",
-            "KHR_blend_equation_advanced", "KHR_context_flush_control", "KHR_debug", "KHR_no_error", "KHR_robustness",
-            "KHR_robust_buffer_access_behavior", "KHR_texture_compression_astc_hdr", "NV_bindless_texture",
-            "NV_blend_equation_advanced", "NV_conditional_render", "NV_conservative_raster", "NV_draw_texture",
-            "NV_EGL_NV_coverage_sample", "NV_EGL_NV_depth_nonlinear", "NV_fence", "NV_fill_rectangle",
-            "NV_fragment_coverage_to_color", "NV_fragment_shader_interlock", "NV_framebuffer_mixed_samples",
-            "NV_geometry_shader_passthrough", "NV_internalformat_sample_query", "NV_NV_3dvision_settings", "NV_NV_bgr",
-            "NV_NV_copy_buffer", "NV_NV_draw_buffers", "NV_NV_draw_instanced", "NV_NV_EGL_stream_consumer_external",
-            "NV_NV_explicit_attrib_location", "NV_NV_fbo_color_attachments", "NV_NV_framebuffer_blit",
-            "NV_NV_framebuffer_multisample", "NV_NV_generate_mipmap_sRGB", "NV_NV_image_formats",
-            "NV_NV_instanced_arrays", "NV_NV_non_square_matrices", "NV_NV_packed_float", "NV_NV_pack_subimage",
-            "NV_NV_pixel_buffer_object", "NV_NV_platform_binary", "NV_NV_polygon_mode", "NV_NV_read_buffer",
-            "NV_NV_read_depth_stencil", "NV_NV_shader_noperspective_interpolation", "NV_NV_shadow_samplers_array",
-            "NV_NV_shadow_samplers_cube", "NV_NV_sRGB_formats", "NV_NV_texture_array", "NV_NV_texture_border_clamp",
-            "NV_NV_texture_compression_latc", "NV_NV_texture_compression_s3tc",
-            "NV_NV_texture_compression_s3tc_update", "NV_NV_texture_npot_2D_mipmap", "NV_NV_viewport_array",
-            "NV_path_rendering", "NV_path_rendering_shared_edge", "NV_sample_locations",
-            "NV_sample_mask_override_coverage", "NV_viewport_array2",
-            "OES_EGL_KHR_fence_sync",
-            "OVR_multiview","OVR_multiview2", 
-    };
-    
+   
     /**
      * Get 
      * @return
@@ -518,7 +902,7 @@ public class GLExtension
                     .append(addIdentLines(cProto,"* "))   // create function to add * after new line
                     .append("\n")
                     .append("  *</pre>\n")
-                    .append("  * See also <a href=\"").append(khronosReg).append("\">").append(khronosReg).append("</a> ")
+                    .append("  * See also <a href=\"").append(khronosReg).append("\">").append(this.name).append("</a> ")
                     .append("\n  **/ \n");
                     
                     sb.append(" public final native static ");
