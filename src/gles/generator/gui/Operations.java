@@ -81,7 +81,7 @@ implements ActionListener
         add(btnJavaCore, OPERATIONS.JAVA_CLASS_CORE);
         add(btnJavaClassAll, OPERATIONS.JAVA_CLASS_ALL_EXTENSIONS);
         add(btnJavaClassSelected, OPERATIONS.JAVA_CLASS_SELECTED_EXT);
-        add(btnJavaMethExt, OPERATIONS.JAVA_CLASS_CORE);
+        add(btnJavaMethExt, OPERATIONS.JAVA_METHOD_EXT);
         add(btnCCore, OPERATIONS.CPP_CLASS_CORE);
         add(btnCExtension, OPERATIONS.CPP_CLASS_EXT);
         add(btnCC, OPERATIONS.C_FUNCTION_LOADER);

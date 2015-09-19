@@ -8,12 +8,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Scanner;
 
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import de.sciss.syntaxpane.DefaultSyntaxKit;
 
@@ -36,9 +40,14 @@ public class MyEditor extends JPanel {
     
     private boolean DEBUG = false;
     /**
-     * flag about using JavaFX
+     * static flag about using JavaFX
      */
-    private static boolean useFX;
+    private static boolean _static_useFX;
+    
+    /**
+     * useFX per instance
+     */
+    private boolean useFX = _static_useFX;
       
     /**
      * Where to store files to load with WebView
@@ -71,9 +80,8 @@ public class MyEditor extends JPanel {
         String defaultValue = "0";
         String version = com.sun.javafx.runtime.VersionInfo.getRuntimeVersion();
         System.out.println("JavaFX: "+ version);
-        useFX = version !=null && !version.equals(defaultValue);
-      
-        if (useFX) {
+        _static_useFX = version !=null && !version.equals(defaultValue);      
+        if (_static_useFX) {
             try {
                 Unzip unzip = new Unzip();
                 tempFolder = unzip.unzipSyntaxScripts();
@@ -86,22 +94,45 @@ public class MyEditor extends JPanel {
         }
     }// static
     
+    
     /**
-     * Simple Ctor
+     * Plain Ctor.<br>
+     * Same as MyEditor(false, TYPE_HTML) 
+     * 
      */
-    private MyEditor(){
-        super();        
-        setLayout(new BorderLayout()); 
+    public MyEditor(){
+        this(false, TYPE_HTML); 
+    }
+    
+   /**
+    * Ctor 
+    * @param useFx - set true to use JavaFX, false to use JEditorPane
+    * @param contentType - content type
+    */
+    public MyEditor(boolean useFx, String contentType){
+        super();
+        this.useFX = useFx;
+        this.type = contentType;
+        init();
+    }
+    
+    /**
+     * initialize GUI
+     */
+    protected void init(){        
+        setLayout(new BorderLayout());
         
         if(useFX){
-            System.out.println("JavaFX mode.");
+           System.out.println("JavaFX mode.");
            webViewPanel = new WebViewPanel(); 
            add(webViewPanel,BorderLayout.CENTER);          
         }else{
+            DefaultSyntaxKit.initKit();
             System.out.println("JEditor mode.");
             editorPane = new JEditorPane(type,content);
-            add(editorPane,BorderLayout.CENTER);
-        } 
+            JScrollPane scroll = new JScrollPane(editorPane);
+            add(scroll,BorderLayout.CENTER);
+        }
     }
     
     /**
@@ -119,19 +150,9 @@ public class MyEditor extends JPanel {
      * @param contentType - content type is one of above types
      */
     public MyEditor(String contentType){
-        super();        
-        setLayout(new BorderLayout()); 
+        super();
         this.type = contentType;
-        
-        if(useFX){
-            System.out.println("JavaFX mode.");
-           webViewPanel = new WebViewPanel(); 
-           add(webViewPanel,BorderLayout.CENTER);          
-        }else{
-            System.out.println("JEditor mode.");
-            editorPane = new JEditorPane(type,content);
-            add(editorPane,BorderLayout.CENTER);
-        } 
+        init();
     }
     
     /**
@@ -154,19 +175,7 @@ public class MyEditor extends JPanel {
         this.content = content;
         this.type = type;
         this.title = fixName( title);
-        
-        setLayout(new BorderLayout()); 
-        
-        if(useFX){
-            System.out.println("JavaFX mode.");
-           webViewPanel = new WebViewPanel(); 
-           add(webViewPanel,BorderLayout.CENTER);
-           setWebViewContent(type, content, this.title);
-        }else{
-            System.out.println("JEditor mode.");
-            editorPane = new JEditorPane(type,content);
-            add(editorPane,BorderLayout.CENTER);
-        } 
+        init();
     }
     
     /**
@@ -174,8 +183,24 @@ public class MyEditor extends JPanel {
      * @param url
      */
     public void setURL(String url){
-        if(webViewPanel !=null)
+        if(webViewPanel !=null){
             webViewPanel.setURL(url);
+            return;
+        }
+        
+        try {
+            String out = new Scanner(new URL(url).openStream(), "UTF-8")
+            .useDelimiter("\\A").next();
+            this.setContentType(this.type);
+            this.editorPane.setText(out);
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
     }
     
     /**
@@ -349,7 +374,7 @@ public class MyEditor extends JPanel {
             if(!title.endsWith(".cpp")){
                 title +=".cpp";
             }
-            txt = prepareHTMLJava(webContent, title);
+            txt = prepareHTMLcpp(webContent, title);
         }else
         
         if(type==TYPE_CSHARP){
@@ -578,7 +603,7 @@ public class MyEditor extends JPanel {
                                 BRUSH_CPP = "cpp",
                                 BRUSH_CSHARP = "csharp",
                                 BRUSH_XML = "xml",
-                                BRUSH_HTML = "xml";
+                                BRUSH_HTML = "html";
      
     /**
      * Script for Syntax Highlight
@@ -646,13 +671,14 @@ public class MyEditor extends JPanel {
                 + "   }\n"
                 + " }";
         
-        MyEditor editor = new MyEditor();
+        MyEditor editor = new MyEditor(false,MyEditor.TYPE_XML);
         frame.getContentPane().add(editor, BorderLayout.CENTER);
         frame.setVisible(true);
         
        // editor.setURL("http://www.google.com.br");
        // editor.setURL("file:///C:/Users/ALESSA~1/AppData/Local/Temp/GLESgen/HelloWorld.java.html");
-        editor.setContent(TYPE_JAVA, java, "HelloWorld");
+       // editor.setContent(TYPE_JAVA, java, "HelloWorld");
+        editor.setURL("file:///C:/Users/Livia/Documents/GitHub/JGLES-gen/gl.xml");
         
     }
     

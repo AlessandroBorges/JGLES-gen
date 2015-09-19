@@ -313,7 +313,7 @@ implements Observer
         } 
         setGlCurrent(gl);
         if(!glXmlLoaded){
-            addXMLEditor("gl.xml", gl.getXML()); 
+            addXMLViewer("gl.xml", gl.getXML()); 
             glXmlLoaded = true;
         }  
         
@@ -336,7 +336,7 @@ implements Observer
         setGlCurrent(gl);
         
         if(!glXmlLoaded){
-            addXMLEditor("gl.xml", gl.getXML()); 
+            addXMLViewer("gl.xml", gl.getXML()); 
             glXmlLoaded = true;
         }  
         
@@ -357,7 +357,7 @@ implements Observer
         } 
         setGlCurrent(gl);       
         if(!glXmlLoaded){
-            addXMLEditor("gl.xml", glCurrent.getXML()); 
+            addXMLViewer("gl.xml", gl.getXML()); 
             glXmlLoaded = true;
         }  
         
@@ -393,6 +393,7 @@ implements Observer
         jc.setContent(MyEditor.TYPE_CPP, text, name);
         mapEditor.put(name,jc);          
         tabbedPane.addTab(name, null, panel, null);
+        tabbedPane.setSelectedComponent(panel);
     }
     
     /**
@@ -418,6 +419,7 @@ implements Observer
         jc.setContent(content);
         mapEditor.put(name,jc);          
         tabbedPane.addTab(name, null, panel, null);
+        tabbedPane.setSelectedComponent(panel);
     }
     
     /**
@@ -427,14 +429,32 @@ implements Observer
     public void addXMLEditor(String name, String text){
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
-        MyEditor jc = createXMLEditor(panel);
-      //jc.setText(text);
+        MyEditor jc = createXMLEditor(panel);      
         jc.setContent(MyEditor.TYPE_XML,text,name);
         mapEditor.put(name,jc);          
         tabbedPane.addTab(name, null, panel, null);
         tabbedPane.setSelectedComponent(panel);
     }
     
+    
+    /**
+     * Add a new Editor tab for XML
+     * @param name  - tab name
+     * @param content - url string to load content 
+     */
+    public void addXMLViewer(String name, String content){
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+      
+        final MyEditor codeEditor = new MyEditor(false, MyEditor.TYPE_XML);       
+        panel.add(codeEditor, BorderLayout.CENTER);
+        panel.doLayout(); 
+        codeEditor.setContent(content);
+        
+        mapEditor.put(name,codeEditor);          
+        tabbedPane.addTab(name, null, panel, null);
+        tabbedPane.setSelectedComponent(panel);
+    }
     
     /**
      * 
@@ -545,6 +565,7 @@ implements Observer
     private static void runMe(){
         Desktop desktop = new Desktop();
         desktop.setSize (new Dimension(960,600));
+        desktop.setExtendedState(JFrame.MAXIMIZED_BOTH); 
         desktop.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         desktop.setLocationRelativeTo(null);
         desktop.setVisible(true);
@@ -635,7 +656,7 @@ implements Observer
         switch (op) {
         case  C_FUNCTION_LOADER:
         {
-            String classNameSugestion = api.toUpperCase()+"CppSelectedExtensions";
+            String classNameSugestion = api.toUpperCase()+"SelectedExtensions";
             classNameSugestion = askUserAboutClassName(api, classNameSugestion,
                     "CPP Class with Selected Extensions"); 
             
@@ -644,14 +665,14 @@ implements Observer
             String pfnLoaders = gl.asCFunctionExtLoaders(values,true);
             String func_laoders = pointers +"\n" + pfnLoaders;
             
-            addCPPEditor(api +"CppSelectedExt", func_laoders);
+            addCPPEditor(api +"SelectedExt", func_laoders);
         }
             break;
             
         case CPP_CLASS_CORE:
             GLFeatureEnum feature = askUserAboutFeature(gl.api);
             String cppClassCore = gl.asJavaClassCore (feature, false);            
-            addCPPEditor(api+"CppCore" , cppClassCore);
+            addCPPEditor(api+"Core" , cppClassCore);
             break;               
             
         case CPP_CLASS_EXT:
@@ -695,13 +716,26 @@ implements Observer
             String classNameSugestion = api.toUpperCase()+"SelectedExtensions";
             classNameSugestion = askUserAboutClassName(api, classNameSugestion, "Java Class with Selected Extensions");          
             
-            String javaExtensions = glCurrent.asJavaClassExt(values, classNameSugestion);
+            String javaExtensions = gl.asJavaClassExt(values, classNameSugestion);
             addJavaEditor(classNameSugestion, javaExtensions);
         }
             break;
             
         case JAVA_METHOD_EXT:
+        {
+            List<String> values = gl.getAllExtensionNames();
+            ExtensionChooser chooser = new ExtensionChooser(this,values, api);
+            chooser.setTitle("Select extensions for " + api);
+            chooser.setPaletteTitle("Select extensions for " + api);
+            chooser.setVisible(true);           
+            values = chooser.getValue();
+
+            String classNameSugestion = api.toUpperCase()+"ExtMethods";
+            classNameSugestion = askUserAboutClassName(api, classNameSugestion, "Java Methods for Selected Extensions");          
             
+            String javaExtensions = gl.asJavaExtension(values);
+            addJavaEditor(classNameSugestion, javaExtensions);
+        }
             break;
 
         default:

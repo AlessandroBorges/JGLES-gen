@@ -1314,20 +1314,21 @@ public class GLmain {
     
     
     /**
-     * Generate a C++ class to load extension Functions 
-     * @param extension to load
+     * Generate a C++ class to load extension functions. 
+     * @param extension - extension to load - partial names are accepted
      * @param nameSuggestion - class name
      * @return C++ source code
      */
     public String asCclassExt(String extension, String nameSuggestion){
         String className = nameSuggestion != null ? nameSuggestion : getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
-        if(api==GL_API.EGL){
+        if(api != GL_API.GL){
             sb.append("#define  EGL_EGLEXT_PROTOTYPES \n");
             sb.append("#include <EGL/egl.h> \n");
             sb.append("#include <EGL/eglext.h> \n");
-        } // GL_GLEXT_PROTOTYPES
-        else if(isGLES2Type(api) /* api==GL_API.GLES2*/){
+        } 
+
+        if(isGLES2Type(api) /* api==GL_API.GLES2*/){
             sb.append("#define  GL_GLEXT_PROTOTYPES \n");
             sb.append("#include <GLES3/gl32.h> \n");
             sb.append("#include <GLES2/gl2ext.h> \n");
@@ -1364,22 +1365,21 @@ public class GLmain {
      * @param feature
      */
     private void appendHeaderInclude(StringBuilder sb, GLFeatureEnum feature){
-        int type = feature.getType();        
-        if(type == GLFeatureEnum.GL_Type){
+        int type = feature.getType();
+        if (type == GLFeatureEnum.GL_Type) {
             sb.append("#define  GL_GLEXT_PROTOTYPES \n");
-            sb.append("#include <GL/gl.h> \n" );
+            sb.append("#include <GL/gl.h> \n");
             sb.append("#include <GL/glext.h> \n");
+            return;
         }
-        else
-        if(type == GLFeatureEnum.EGL_Type){
-            sb.append("#define  EGL_EGLEXT_PROTOTYPES \n");
-            sb.append("#include <EGL/egl.h> \n");
-            sb.append("#include <EGL/eglext.h> \n");
-        }      
-        else 
-         if(type == GLFeatureEnum.GLES1_Type){
+        // always add EGL
+        sb.append("#define  EGL_EGLEXT_PROTOTYPES \n");
+        sb.append("#include <EGL/egl.h> \n");
+        sb.append("#include <EGL/eglext.h> \n");
+
+        if (type == GLFeatureEnum.GLES1_Type) {
             sb.append("#define  GL_GLEXT_PROTOTYPES \n");
-            sb.append("#include <GLES/gl.h> \n" );
+            sb.append("#include <GLES/gl.h> \n");
             sb.append("#include <GLES/glext.h> \n");
         }else {// GLES2 / GLES3 case
             sb.append("#define  GL_GLEXT_PROTOTYPES \n");            
@@ -1400,7 +1400,7 @@ public class GLmain {
                     break;
             }           
             sb.append("#include <GLES2/gl2ext.h> \n");
-        }
+        }        
     }
     
     /**
@@ -1480,12 +1480,13 @@ public class GLmain {
     public String asCclassExt(List<String> extensions, String nameSuggestion){
         String className = nameSuggestion != null ? nameSuggestion : getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
-        if(api==GL_API.EGL){
+        if(api != GL_API.GL){
             sb.append("#define  EGL_EGLEXT_PROTOTYPES \n");
             sb.append("#include <EGL/egl.h> \n");
             sb.append("#include <EGL/eglext.h> \n");
-        } // GL_GLEXT_PROTOTYPES
-        else if(isGLES2Type(api) /* api==GL_API.GLES2*/){
+        } 
+        // GL-ES
+        if(isGLES2Type(api) /* api==GL_API.GLES2*/){
             sb.append("#define  GL_GLEXT_PROTOTYPES \n");
             sb.append("#include <GLES3/gl32.h> \n");
             sb.append("#include <GLES2/gl2ext.h> \n");
