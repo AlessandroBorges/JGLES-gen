@@ -116,6 +116,20 @@ public class GLFeature
     }
     
     /**
+     * 
+     * @return
+     */
+    public String getCcoreFunctionLoader(){
+        StringBuilder sb = new StringBuilder(2048);
+        
+        //TODO implement it 
+        
+        
+        return sb.toString();
+        
+    }
+    
+    /**
      * all Enum
      */
     private List<GLenum> allEnum = null; 

@@ -287,7 +287,7 @@ public class GLFunction implements JavaPrinter, Comparable {
     * Print this Function
     */
     public String toString() {
-        final int maxLen = 32;
+       // final int maxLen = 32;
         StringBuilder sb = new StringBuilder();      
         sb.append("\n");
         if (proto != null) {
@@ -358,6 +358,99 @@ public class GLFunction implements JavaPrinter, Comparable {
         printAsCprotoOnce = true;
         String cProto = toString();
         return cProto;
+    }
+    
+    /**
+     * Return typedef PFN_PROC and optional function prototype declaration; 
+     * <pre>
+     * Output:
+     * typedef void (APIENTRYP PFNGLACTIVETEXTUREPROC)(GLenum texture);
+     * 
+     *  If addVar is set true, you got the following function declaration.
+     *  Please note this is not necessary for core functions, as it's already 
+     *  declared  on gl.h , gl2.h , egl.h, etc.
+     *   
+     * GLAPI PFNGLACTIVETEXTUREPROC mangled_glActiveTexture; 
+     * </pre>
+     * @param isEGL - set true for E|GL api
+     * @param addVar - set true to add declaration of function variable
+     * @param mangle - set mangle prefix to function name
+     * 
+     * @return string with typedef and optional 
+     */
+    public String asCTypedef(boolean isEGL, boolean addVar, String  mangle){
+       // throw new UnsupportedOperationException("Not implemented yet");
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("typedef ");
+        
+        if (proto != null) {
+            sb.append(proto);
+            sb.append(" ");
+        }
+        if (ptype != null) {         
+            sb.append(ptype);
+            sb.append(" ");
+        } 
+        if (name != null) {
+            String apientryP = isEGL ? "EGLAPIENTRYP " : "GL_APIENTRYP ";
+            sb.append("(").append(apientryP);            
+            sb.append(getPFNPROCname());
+            sb.append(") ");
+        }
+        // param
+        if (params != null || params.size() > 0) {
+            sb.append(" ( ")
+              .append(toString(params, params.size()))        
+              .append("); ");
+        } else {
+            sb.append("(void); ");
+        }
+        
+        if(addVar){
+           sb.append("\n");
+           String apicall = isEGL ? "EGLAPI " :"GL_APICALL ";
+           sb.append(apicall);
+           if (proto != null) {
+               sb.append(proto);
+               sb.append(" ");
+           }
+           if (ptype != null) {         
+               sb.append(ptype);
+               sb.append(" ");
+           } 
+           if (name != null) {
+               String apientryP = isEGL ? "EGLAPIENTRYP " : "GL_APIENTRYP ";
+               sb.append(apientryP).append(" ");  
+               if(mangle!=null){
+                   sb.append(mangle);
+               }
+               sb.append(name);
+               sb.append("");
+           }
+           // param
+           if (params != null || params.size() > 0) {
+               sb.append(" ( ")
+                 .append(toString(params, params.size()))        
+                 .append("); ");
+           } else {
+               sb.append("(void); ");
+           }
+        }
+        
+        return sb.toString();
+    }
+    
+    
+    /**
+     * PFN-PROCfy function name.
+     * 
+     * Adds prefix PFN and sufix PROC to uppercase function name. 
+     * 
+     * @return string with PFN + name uppercase + PROC
+     */
+    public String getPFNPROCname(){
+        return "PFN" + name.toUpperCase() +"PROC";
     }
     
     /**

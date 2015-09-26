@@ -53,12 +53,7 @@ import javax.swing.border.SoftBevelBorder;
 public class Desktop extends JFrame
 implements Observer
 {
-    
-    
-//    private static final String C_LOADER_FOR_ALL_EXTENSION_FUNCTIONS = "C++ Loader for all Extension Functions";
-//    private static final String C_EXTENSION_FUNCTION_LOADERS = "C++ Extension Function Loaders";
-//    private static final String C_EXT_FUNCTION_POINTERS = "C++ Ext. Function Pointers";
-//    private static final String JAVA_EXTENSIONS_CLASS = "Java Extensions class";
+   
 
     public static final String EGL = "EGL";
     public static final String GLES1 = "GLES1";
@@ -752,9 +747,9 @@ implements Observer
     private GLFeatureEnum askUserAboutFeature(GL_API api){
         GLFeatureEnum[] features = null;
         GLFeatureEnum defaultFeature = null;
-        if(api==GL_API.EGL){
-            features = GLFeatureEnum.EGL_FEATURES;
-        }
+//        if(api==GL_API.EGL){
+//            features = GLFeatureEnum.EGL_FEATURES;
+//        }
         
         switch (api) {
         case EGL:
@@ -790,7 +785,7 @@ implements Observer
             defaultFeature =  features[features.length-1];
         }
         
-        return defaultFeature;
+        return feature;
     }
     
     /**

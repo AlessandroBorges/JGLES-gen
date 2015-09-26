@@ -648,6 +648,46 @@ public class GLmain {
      * Get C Function Pointers 
      * @return java loading methods for GL/EGL Extensions
      */
+    public String asCFunctionCoreLoaders(GLFeatureEnum featureEnum, 
+                                         boolean backwardsComp, 
+                                         boolean asStatic,
+                                         String mangle) {
+        StringBuilder sb = new StringBuilder(8 * 1024);
+        
+        sb.append(getCFuncProcAddress())
+        .append("\n\n");
+        
+        List<GLFeatureEnum> features = new ArrayList<GLFeatureEnum>();
+        
+        if( backwardsComp){
+            features.addAll(featureEnum.getBackwardsList());
+        }else{
+            features.add(featureEnum);
+        }
+        
+        
+        for (GLFeatureEnum feat : featureEnum.getBackwardsList()) {
+          GLFeature fefe =  getAPIFeature(feat);
+          Set<GLFunction> functions =  getAllFunctions();
+          
+          
+
+        }
+       
+        
+//        for (GLExtension glExt : glesExt) {
+//            glExt.setJavaAPIMode(getAPI());
+//            String loader = glExt.asCfunctionLoaders(asStatic);
+//            sb.append(loader);
+//        }
+        return sb.toString();
+    }
+    
+    
+    /**
+     * Get C Function Pointers 
+     * @return java loading methods for GL/EGL Extensions
+     */
     public String asCFunctionExtLoaders(boolean asStatic) {
         StringBuilder sb = new StringBuilder(8 * 1024);
         
@@ -1428,7 +1468,7 @@ public class GLmain {
         sb.append("using namespace std;\n");
         sb.append("  class ").append(className).append("{\n");
         
-        if (extensions.size() > 0) {
+        if (extensions != null && extensions.size() > 0) {
             // variables
             sb.append("     public:\n");
             String fntProc = asCFunctionExtPointers(extensions, false);
@@ -1585,9 +1625,47 @@ public class GLmain {
      
      /**
       * Get Core Functions
+      * @param featureName - GLFeatureEnum instance
+      * @param backwardsCompatible - if true, return functions from all backwards features;
+      * 
       * @return list of GLFunctions of Core API
       */
-     public List<GLFunction> getCoreFunctions(GLFeatureEnum featureName){
+    public List<GLFunction> getCoreFunctions(GLFeatureEnum featureName, boolean backwardsCompatible) {
+
+        List<GLFeatureEnum> list = null;
+        if (backwardsCompatible) {
+            list = featureName.getBackwardsList();
+        } else {
+            list = new ArrayList<>(1);
+            list.add(featureName);
+        }
+
+        List<GLFunction> functions = new ArrayList<GLFunction>(300);
+
+        for (GLFeatureEnum feat : list) {
+            GLFeature feature = getAPIFeature(feat);
+            if (feature == null) {
+                throw new IllegalArgumentException("Invalid feature. Feature "
+                        + featureName + " is not available for "
+                        + this.getAPI_new());
+            } else
+
+            functions.addAll(feature.getAllFunctions());
+        }
+        return functions;
+
+    }
+     
+    /**
+     * Get core functions from a GL feature.<br>
+     * Same as {@link #getCoreFunctions(GLFeatureEnum, boolean)} 
+     * with 2 argument as false. 
+     * 
+     * @param featureName - feature to query functions
+     * @return list of Functions
+     * @see #getCoreFunctions(GLFeatureEnum, boolean)
+     */
+     public List<GLFunction> getCoreExtrictFunctions(GLFeatureEnum featureName){
          GLFeature feature = getAPIFeature(featureName);
          if(feature == null){
              throw new IllegalArgumentException("Invalid feature. Feature " + 
@@ -1744,7 +1822,7 @@ public class GLmain {
      * @param args
      */
     public static void main(String[] args) {
-        GLmain gl = new GLmain("", GL_API.EGL);
+        GLmain gl = new GLmain("", GL_API.GLES32);
 
         boolean testFunctionPointers = false;
         boolean testQueryExt = false;
@@ -1752,10 +1830,10 @@ public class GLmain {
         boolean testAllLoaders = false;
         boolean testCclass = false;
         boolean testFeaturesNames = false;
-        boolean testCore = false;
+        boolean testCore = true;
         boolean testJavaClass = false;
         boolean testSingleClassExt = false;
-        boolean testAsJavaCore = true;
+        boolean testAsJavaCore = false;
         boolean testJNIgenHeader = false;
         boolean testClassExtSelec = false;
         
@@ -1814,11 +1892,11 @@ public class GLmain {
 
         if (testCore) {
             System.out.println("Test Core Functions:");
-            for (GLFunction func : gl.getCoreFunctions(GLFeatureEnum.GL_ES_VERSION_3_2)) {
+            for (GLFunction func : gl.getCoreFunctions(GLFeatureEnum.GL_ES_VERSION_3_2,true)) {
                 System.out.println(func);
             }
 
-            System.out.println("Test Core Functions:");
+            System.out.println("Test Core Enumerations:");
             for (GLenum enume : gl.getCoreBackwardsEnum(GLFeatureEnum.GL_ES_VERSION_3_2)) {
                 System.out.println(enume);
             }
