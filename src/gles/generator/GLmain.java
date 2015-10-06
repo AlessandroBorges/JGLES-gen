@@ -836,7 +836,7 @@ public class GLmain {
         
         checkExtensionGroup(extensionNames);
         
-        Set<GLExtension> glExts = new HashSet<GLExtension>();
+        Set<GLExtension> glExts = new TreeSet<GLExtension>();
         //get extensions java codes and the GLExtension
         String extensions = asJavaExtension(extensionNames, glExts);
         
