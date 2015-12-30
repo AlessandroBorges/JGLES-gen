@@ -3,14 +3,13 @@ Java Bindings to OpenGL-ES - Code Generator
 
 *Hi !*
 
-Welcome to our code generator for binding ***EGL*** and ***OpenGL-ES*** to Java !
+Welcome to my code generator for binding ***EGL*** and ***OpenGL-ES*** to Java !
 This tool aims help create bridges between a Java application and EGL/GLES API.
 In usual way, using JNI, this kind of work was boring, slow and prone error task.
 Now, using JGLES-gen, is quiet simple!
 
-For example, to create use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you should type few lines and then generate a Java class with embedded C++ code.
+For example, to create use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you should type few lines and then generate a Java class with embedded C++ code:
 
-This Java code: 
 
 ```java
     GLmain gl = new GLmain(GL_API.EGL);    
@@ -19,7 +18,7 @@ This Java code:
 
 ```
 
-Will generate this source code:
+Above 3 lines will generate below source code, with both Java and embedded C++, compilable with LibGDX's jnigen:
 
 ```java
 //Single Extension Java Class Creation
@@ -136,6 +135,9 @@ Will generate this source code:
 
 ```
 
+Motivation
+----------
+
 Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great, with years of experience added, but none of them are mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
 
 My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native bindings through **C++** and **jnigen**.
@@ -143,12 +145,12 @@ My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native b
 How it Works ?
 --------------
 
-This tool loads a local copy of egl.xml and gl.xml, the official **XML API registry of reserved Enumerants and Functions**, maintained by Khonus ( <http://www.khronos.org> ), and extract enumerations and functions from core and extensions of the following APIS:
+This tool loads a local copy of egl.xml and gl.xml, the official **XML API registry of reserved Enumerants and Functions**, maintained by Khonos ( <http://www.khronos.org> ), the official OpenGL board,  and extract enumerations and functions from core and extensions of the following APIS:
 
 -   EGL
 -   GL-ES 1.x
 -   GL-ES 2.0
--   GL-ES 3.x
+-   GL-ES 3.0, 3.1 & 3.2
 
 With this collection of information, we can output Java and C++ source code to access the following:
 
