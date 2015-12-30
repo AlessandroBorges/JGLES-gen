@@ -1,55 +1,17 @@
-Java Bindings to OpenGL-ES Generator 
-=====================================
+Java Bindings to OpenGL-ES - Code Generator 
+============================================
 
 *Hi !*
 
-Welcome to our code generator for binding ***EGL*** and ***OpenGL-ES***.
-This tool aims help create bridges between a Java/C++ application and EGL/GLES API.
-In usual way, this kind of work is a boring, slow and prone error task.
+Welcome to our code generator for binding ***EGL*** and ***OpenGL-ES*** to Java !
+This tool aims help create bridges between a Java application and EGL/GLES API.
+In usual way, using JNI, this kind of work was boring, slow and prone error task.
+Now, using JGLES-gen, is quiet simple!
 
-For example, to use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you must :
+For example, to create use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you should type few lines and then generate a Java class with embedded C++ code.
 
--   Declare function pointer for new function **eglQueryDevicesEXT**:
- PFNEGLQUERYDEVICESEXTPROC **eglQueryDevicesEXT**
+This Java code: 
 
--   Query function using eglGetProcAddress:
- **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
-
-Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
-```java
-  GLmain gl = new GLmain(GL_API.EGL);    
-  String cClass = gl.asCclassExt("EGL_EXT_device_enumeration");
-  System.out.println("//cClass: \n" + cClass);
-
-```
-
-It will produce this code:
-
-```cpp
-//cClass: 
-    #define  EGL_EGLEXT_PROTOTYPES 
-    #include <EGL/egl.h> 
-    #include <EGL/eglext.h> 
-    using namespace std;
-   class EGLExt{
-     public:      
-	 PFNEGLQUERYDEVICESEXTPROC	eglQueryDevicesEXT;
-     public:
-     // function loader
-     #define myFuncLoader(x) eglGetProcAddress(x)   
-      int loadExtFuncEGL_EXT_device_enumeration(){
-	    eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader("eglQueryDevicesEXT");
-	    return 1;
-      }
-     public:
-	  int loadALL(){
-     	  loadExtFuncEGL_EXT_device_enumeration();
-          return 1;
-      } // loadALL()
- } // end of class
-```
-
-To generate a Java binding, do this:
 ```java
     GLmain gl = new GLmain(GL_API.EGL);    
     String javaClass = gl.asJavaClassExt("EGL_EXT_device_enumeration");
@@ -57,7 +19,8 @@ To generate a Java binding, do this:
 
 ```
 
-To produce this code:
+Will generate this source code:
+
 ```java
 //Single Extension Java Class Creation
   /**
