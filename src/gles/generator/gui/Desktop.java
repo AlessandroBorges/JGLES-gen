@@ -9,12 +9,16 @@ import gles.generator.GLmain.GL_API;
 import gles.generator.gui.Operations.OPERATIONS;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.Beans;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -29,6 +33,7 @@ import javafx.scene.GroupBuilder;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 //import javax.swing.MyEditor;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -41,6 +46,12 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.BoxLayout;
+import net.miginfocom.swing.MigLayout;
+import java.awt.FlowLayout;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
 
 
@@ -51,7 +62,7 @@ import javax.swing.border.SoftBevelBorder;
  */
 @SuppressWarnings("serial")
 public class Desktop extends JFrame
-implements Observer
+implements Observer, ActionListener
 {
    
 
@@ -75,7 +86,12 @@ implements Observer
      */
     private Operations options;
     
-    private static final boolean DEBUG = false; 
+    private static final boolean DEBUG = false;
+    private static final String DOT_JAVA = ".java";
+    private static final String DOT_CPP = ".cpp";
+    private static final String DOT_XML = ".xml";
+    private static final String DOT_HTML = ".html"; 
+    
   
     private Progresso progresso;
     
@@ -93,7 +109,6 @@ implements Observer
             setLF();
           //  DefaultSyntaxKit.initKit();
         }
-        
     }
     
     /**
@@ -139,12 +154,17 @@ implements Observer
         JPanel topPanel = new JPanel();
         topPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
         topPanel.setMinimumSize(new Dimension(300, 120));
-        topPanel.setPreferredSize(new Dimension(300, 40));
+        topPanel.setPreferredSize(new Dimension(300, 80));
         mainPanel.add(topPanel, BorderLayout.NORTH);
         topPanel.setLayout(new BorderLayout(0, 0));
         
+        JPanel panel = new JPanel();
+        topPanel.add(panel, BorderLayout.SOUTH);
+        
         JPanel btPanel = new JPanel();
-        topPanel.add(btPanel, BorderLayout.CENTER);
+        btPanel.setPreferredSize(new Dimension(300, 40));
+        btPanel.setMinimumSize(new Dimension(300, 40));
+        topPanel.add(btPanel, BorderLayout.NORTH);
         
         final JToggleButton btnEgl = new JToggleButton("EGL");
         btnEgl.addActionListener(new ActionListener() {
@@ -160,6 +180,7 @@ implements Observer
                 t.start();                
             }
         });
+        btPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         btPanel.add(btnEgl);
         
         final JToggleButton btnGles = new JToggleButton("GL-ES 1.x");
@@ -236,6 +257,27 @@ implements Observer
         options.addObserver(this);
         
         mainPanel.add(panelOptions, BorderLayout.WEST);        
+        
+        JMenuBar menuBar = new JMenuBar();
+        JMenu mnFile = new JMenu("File");
+        JMenu mnAbout = new JMenu("About");
+        
+        getContentPane().add(menuBar, BorderLayout.NORTH);
+        menuBar.add(mnFile);        
+        menuBar.add(mnAbout);
+        
+        miFileSave = new JMenuItem("Save active tab as file...");
+        miFileExit = new JMenuItem("Exit");
+        mnFile.add(miFileSave);        
+        mnFile.add(miFileExit);
+        
+        miAboutAbout = new JMenuItem("About Gles-Gen...");
+        mnAbout.add(miAboutAbout);
+        
+        // set action listener
+        miFileSave.addActionListener(this);
+        miFileExit.addActionListener(this);
+        miAboutAbout.addActionListener(this);        
     }
     
     /**
@@ -371,6 +413,9 @@ implements Observer
         MyEditor jc = createJavaEditor(panel);
         //jc.setText(text);
         jc.setContent(MyEditor.TYPE_JAVA, text, name);
+        if(!name.endsWith(DOT_JAVA)){
+            name = name +DOT_JAVA;
+        }
         mapEditor.put(name,jc);          
         tabbedPane.addTab(name, null, panel, null);
         tabbedPane.setSelectedComponent(panel);
@@ -386,6 +431,11 @@ implements Observer
         MyEditor jc = createCPPEditor(panel);
       //jc.setText(text);
         jc.setContent(MyEditor.TYPE_CPP, text, name);
+        
+        if(!name.endsWith(DOT_CPP)){
+            name = name +DOT_CPP;
+        }
+        
         mapEditor.put(name,jc);          
         tabbedPane.addTab(name, null, panel, null);
         tabbedPane.setSelectedComponent(panel);
@@ -614,6 +664,9 @@ implements Observer
     }
     
     private List<String> listExt;
+    private JMenuItem miFileSave;
+    private JMenuItem miFileExit;
+    private JMenuItem miAboutAbout;
     /**
      * set List of Extension names.
      * @param list
@@ -828,6 +881,91 @@ implements Observer
         }
         
         return classNameSugestion;
+    }
+
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+       Object source = e.getSource();
+       
+       if(source==miFileSave){
+           doSaveCurrentFile();
+       }else if(source==miFileExit){
+           doExit();
+       }else if (source==miAboutAbout){
+           doAbout();
+       }
+    }// end actionlistener
+    
+    private void doSaveCurrentFile() {
+        int selectedTab = tabbedPane.getSelectedIndex();
+        if (selectedTab < 0) {
+            alert("There is no tab available.");
+            return;
+        }
+        String name = tabbedPane.getTitleAt(selectedTab);
+
+        MyEditor editor = mapEditor.get(name);
+        String content = editor.getContent();
+        save(name, content);
+    }// end
+
+    private String userHome = System.getProperty("user.home");
+    private File currentDir = new File(userHome);
+    
+    private void save(String name, String txt){
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(currentDir);
+        File fileToSave = new File(currentDir, name);
+        fileChooser.setSelectedFile(fileToSave);
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+          fileToSave = fileChooser.getSelectedFile();
+          currentDir = fileChooser.getCurrentDirectory();
+          PrintWriter out;
+        try {
+            out = new PrintWriter(fileToSave);
+            out.print(txt);
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            alert("<HTML><h3>Failed to save "+fileToSave +"</h3>"
+                    + "Exception: "+e.getMessage());
+        }
+         
+          // save to file
+        }
+    }
+    
+    private void doExit(){
+        this.setVisible(false);
+        this.dispose();
+    }
+    
+    private void doAbout(){
+        String msg = "<HTML>"
+                + "<H2>Gles Gen 1.0.0</H2>"
+                + "Java/C++ code generator for OpenGL-ES binding.<br>"
+                +"Author: Alessandro Borges (2016)<br>"
+                + "GitHub: <a href='https://github.com/AlessandroBorges/JGLES-gen'>https://github.com/AlessandroBorges/JGLES-gen</a><br>"
+                +" License info:<br>"
+                + "<i>Licensed under the <b>Apache License, Version 2.0</b>.<br>"
+                + "you may not use this file except in compliance with the License.<br>"
+                + " You may obtain a copy of the License at <br>"
+                + " <a href='http://www.apache.org/licenses/LICENSE-2.0'>http://www.apache.org/licenses/LICENSE-2.0</a><br>"
+                + "Unless required by applicable law or agreed to in writing, <br>"
+                + "software distributed under the License is distributed on an \"AS IS\"<br>"
+                + " BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or<br>"
+                + " implied. See the License for the specific language governing<br>"
+                + " permissions and limitations under the License.</i><br> "
+                + "</HTML>";
+                
+        JOptionPane.showMessageDialog(this, msg, "About ...", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    public void alert(String msg){
+        JOptionPane.showMessageDialog(this, msg, "Alert", JOptionPane.INFORMATION_MESSAGE);
     }
    
 }
