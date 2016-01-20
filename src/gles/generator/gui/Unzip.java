@@ -34,14 +34,12 @@ public class Unzip
         
     public static void main(String[] args) {
 
-       SwingUtilities.invokeLater(new Runnable() {
-        
+       SwingUtilities.invokeLater(new Runnable() {        
         @Override
         public void run() {
            runMe();            
         }
-    });
-        
+    });        
     }
     
     public static void runMe() {
@@ -57,8 +55,7 @@ public class Unzip
     /**
      * Ctor
      */
-    public Unzip(){
-        
+    public Unzip(){        
     }
     
     /**
@@ -70,7 +67,7 @@ public class Unzip
         File folder = getFolder();
         InputStream zipStream = clazz.getResourceAsStream(INPUT_ZIP_FILE);
         unZipIt(zipStream, folder);
-        return getFolder();
+        return folder;
     }
     /**
      * Create temp dir and subfolders
@@ -104,7 +101,7 @@ public class Unzip
      * Created a non temporary dir in java.io.tmpdir
      * @return file
      */
-    public  File createNoTempDir() {
+    public   File createNoTempDir() {
         File baseDir = new File(System.getProperty("java.io.tmpdir"));
         String baseName = FOLDER_NAME;
 

@@ -77,20 +77,24 @@ public class MyEditor extends JPanel {
     private String defaultTheme = THEME_CORE_DEFAULT;
     
     static {
-        String defaultValue = "0";
-        String version = com.sun.javafx.runtime.VersionInfo.getRuntimeVersion();
-        System.out.println("JavaFX: "+ version);
-        _static_useFX = version !=null && !version.equals(defaultValue);      
-        if (_static_useFX) {
-            try {
-                Unzip unzip = new Unzip();
-                tempFolder = unzip.unzipSyntaxScripts();
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            String defaultValue = "0";
+            String version = com.sun.javafx.runtime.VersionInfo.getRuntimeVersion();
+            System.out.println("JavaFX: " + version);
+            _static_useFX = version != null && !version.equals(defaultValue);
+            if (_static_useFX) {
+                try {
+                    Unzip unzip = new Unzip();
+                    tempFolder = unzip.unzipSyntaxScripts();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                // init JEDITOR
+                DefaultSyntaxKit.initKit();
             }
-        }else{
-            //init JEDITOR
-            DefaultSyntaxKit.initKit();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }// static
     
@@ -675,10 +679,18 @@ public class MyEditor extends JPanel {
         frame.getContentPane().add(editor, BorderLayout.CENTER);
         frame.setVisible(true);
         
-       // editor.setURL("http://www.google.com.br");
-       // editor.setURL("file:///C:/Users/ALESSA~1/AppData/Local/Temp/GLESgen/HelloWorld.java.html");
-       // editor.setContent(TYPE_JAVA, java, "HelloWorld");
-        editor.setURL("file:///C:/Users/Livia/Documents/GitHub/JGLES-gen/gl.xml");
+       
+        try {
+            File tempFolder = new Unzip().getFolder();
+            File file = new File(tempFolder,"gl.xml");
+            editor.setURL(file.toString());
+            
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+       
         
     }
     

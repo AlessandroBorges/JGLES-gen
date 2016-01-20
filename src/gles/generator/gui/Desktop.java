@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -293,6 +294,7 @@ implements Observer, ActionListener
         return glCurrent;
     }
 
+    
 
     /**
      * @param glCurrent the glCurrent to set
@@ -967,5 +969,46 @@ implements Observer, ActionListener
     public void alert(String msg){
         JOptionPane.showMessageDialog(this, msg, "Alert", JOptionPane.INFORMATION_MESSAGE);
     }
+    
+    /**
+     * 
+     * @return
+     * @throws IOException
+     */
+    public static File getTempFolder() throws IOException{
+        return  new Unzip().getFolder();
+    }
    
+}
+/**
+ *  Class to store user in information
+ * @author Alessandro
+ *
+ */
+class Options implements Serializable {
+ 
+    private String dir;
+    
+    /**
+     * plain Constructor
+     */
+    public Options(){}
+
+    /**
+     * @return the dir
+     */
+    public String getDir() {
+        return dir;
+    }
+
+    /**
+     * @param dir the dir to set
+     */
+    public void setDir(String dir) {
+        this.dir = dir;
+    }
+    
+    
+    
+
 }
