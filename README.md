@@ -142,8 +142,8 @@ Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and
 
 My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native bindings through **C++** and **jnigen**.
 
-How it Works ?
---------------
+How does it Works ?
+------------------
 
 This tool loads a local copy of egl.xml and gl.xml, the official **XML API registry of reserved Enumerants and Functions**, maintained by Khonos ( <http://www.khronos.org> ), the official OpenGL board,  and extract enumerations and functions from core and extensions of the following APIS:
 
