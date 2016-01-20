@@ -1,55 +1,16 @@
-Java Bindings to OpenGL-ES Generator 
-=====================================
+Java Bindings to OpenGL-ES - Code Generator 
+============================================
 
 *Hi !*
 
-Welcome to our code generator for binding ***EGL*** and ***OpenGL-ES***.
-This tool aims help create bridges between a Java/C++ application and EGL/GLES API.
-In usual way, this kind of work is a boring, slow and prone error task.
+Welcome to my code generator for binding ***EGL*** and ***OpenGL-ES*** to Java !
+This tool aims help create bridges between a Java application and EGL/GLES API.
+In usual way, using JNI, this kind of work was boring, slow and prone error task.
+Now, using JGLES-gen, is quiet simple!
 
-For example, to use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you must :
+For example, to create use a function from an EGL extension, like eglQueryDevicesEXT from *EGL\_EXT\_device\_enumeration*, you should type few lines and then generate a Java class with embedded C++ code:
 
--   Declare function pointer for new function **eglQueryDevicesEXT**:
- PFNEGLQUERYDEVICESEXTPROC **eglQueryDevicesEXT**
 
--   Query function using eglGetProcAddress:
- **eglQueryDevicesEXT = (**PFNEGLQUERYDEVICESEXTPROC**)eglGetProcAddress(“eglQueryDevicesEXT”);**
-
-Replace all this work with 3 line of code to produce a C++ class to handle it, like below:
-```java
-  GLmain gl = new GLmain(GL_API.EGL);    
-  String cClass = gl.asCclassExt("EGL_EXT_device_enumeration");
-  System.out.println("//cClass: \n" + cClass);
-
-```
-
-It will produce this code:
-
-```cpp
-//cClass: 
-    #define  EGL_EGLEXT_PROTOTYPES 
-    #include <EGL/egl.h> 
-    #include <EGL/eglext.h> 
-    using namespace std;
-   class EGLExt{
-     public:      
-	 PFNEGLQUERYDEVICESEXTPROC	eglQueryDevicesEXT;
-     public:
-     // function loader
-     #define myFuncLoader(x) eglGetProcAddress(x)   
-      int loadExtFuncEGL_EXT_device_enumeration(){
-	    eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) myFuncLoader("eglQueryDevicesEXT");
-	    return 1;
-      }
-     public:
-	  int loadALL(){
-     	  loadExtFuncEGL_EXT_device_enumeration();
-          return 1;
-      } // loadALL()
- } // end of class
-```
-
-To generate a Java binding, do this:
 ```java
     GLmain gl = new GLmain(GL_API.EGL);    
     String javaClass = gl.asJavaClassExt("EGL_EXT_device_enumeration");
@@ -57,7 +18,8 @@ To generate a Java binding, do this:
 
 ```
 
-To produce this code:
+Above 3 lines will generate below source code, with both Java and embedded C++, compilable with LibGDX's jnigen:
+
 ```java
 //Single Extension Java Class Creation
   /**
@@ -173,6 +135,9 @@ To produce this code:
 
 ```
 
+Motivation
+----------
+
 Today there are several tools to bind C/C++/Java to OpenGL, as GLEW and GLAD and even some more complete solutions as GLFW, SDL, JOGL and LWJGL. They are great, with years of experience added, but none of them are mainly focused to EGL and GL-ES. Their main task is supporting the complex and heavy weight desktop OpenGL.
 
 My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native bindings through **C++** and **jnigen**.
@@ -180,12 +145,12 @@ My proposal is supporting **EGL** and **GL-ES**, with focus on **Java** native b
 How it Works ?
 --------------
 
-This tool loads a local copy of egl.xml and gl.xml, the official **XML API registry of reserved Enumerants and Functions**, maintained by Khonus ( <http://www.khronos.org> ), and extract enumerations and functions from core and extensions of the following APIS:
+This tool loads a local copy of egl.xml and gl.xml, the official **XML API registry of reserved Enumerants and Functions**, maintained by Khonos ( <http://www.khronos.org> ), the official OpenGL board,  and extract enumerations and functions from core and extensions of the following APIS:
 
 -   EGL
 -   GL-ES 1.x
 -   GL-ES 2.0
--   GL-ES 3.x
+-   GL-ES 3.0, 3.1 & 3.2
 
 With this collection of information, we can output Java and C++ source code to access the following:
 
