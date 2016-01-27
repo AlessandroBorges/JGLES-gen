@@ -681,7 +681,9 @@ implements Observer, ActionListener
      * perform a action based on obj
      * @param obj - possibly a instance of {@link OPERATIONS}
      */
-    public void action(Object obj){        
+    public void action(Object obj){  
+        boolean mangled = true;
+        
         System.out.println(obj);
         
         if(!(obj instanceof Operations.OPERATIONS)){
@@ -711,8 +713,8 @@ implements Observer, ActionListener
                     "CPP Class with Selected Extensions"); 
             
             List<String> values = askUserAboutExtension(api, gl);
-            String pointers   = gl.asCFunctionExtPointers(values,true);           
-            String pfnLoaders = gl.asCFunctionExtLoaders(values,true);
+            String pointers   = gl.asCFunctionExtPointers(values,true, mangled);           
+            String pfnLoaders = gl.asCFunctionExtLoaders(values,true, mangled);
             String func_laoders = pointers +"\n" + pfnLoaders;
             
             addCPPEditor(api +"SelectedExt", func_laoders);

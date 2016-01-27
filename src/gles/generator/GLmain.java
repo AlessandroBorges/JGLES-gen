@@ -297,11 +297,11 @@ public class GLmain {
      * @param asStatic - true to create static function pointers
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtPointers(boolean asStatic){
+    public String asCFunctionExtPointers(boolean asStatic, boolean asMangled){
         StringBuilder sb = new StringBuilder(8*1024);        
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(getAPI());
-            String cFPNProc = glExt.asCfunctionPointers(asStatic);
+            String cFPNProc = glExt.asCfunctionPointers(asStatic, asMangled);
             sb.append(cFPNProc);
         }     
         return sb.toString();
@@ -412,7 +412,7 @@ public class GLmain {
      * @param asStatic - true to create static function pointers
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtPointers(String extensionName, boolean asStatic) {
+    public String asCFunctionExtPointers(String extensionName, boolean asStatic, boolean asMangled) {
         if (extensionName == null) {
             extensionName = "";
         }
@@ -431,7 +431,7 @@ public class GLmain {
             String name = glExt.name.trim();
             if (list.contains(name)) {
                 glExt.setJavaAPIMode(getAPI());
-                String cFPNProc = glExt.asCfunctionPointers(asStatic);
+                String cFPNProc = glExt.asCfunctionPointers(asStatic, asMangled);
                 sb.append(cFPNProc);
             }
         }
@@ -444,9 +444,11 @@ public class GLmain {
      * 
      * @param extensionNames - List of <b>exactly</b>  extension name function pointers
      * @param asStatic - true to create static functions
+     * @param asMangled - mangle function name to avoid colisions with glExt.h
+     * 
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtPointers(List<String> extensionNames, boolean asStatic) {                
+    public String asCFunctionExtPointers(List<String> extensionNames, boolean asStatic, boolean asMangled) {                
         List<String> list = extensionNames;
         StringBuilder sb = new StringBuilder(8 * 1024);
         // list extensions used
@@ -461,7 +463,7 @@ public class GLmain {
             String name = glExt.name.trim();
             if (containsIgnoreCase(list, name)) {
                 glExt.setJavaAPIMode(getAPI());
-                String cFPNProc = glExt.asCfunctionPointers(asStatic);
+                String cFPNProc = glExt.asCfunctionPointers(asStatic, asMangled);
                 sb.append(cFPNProc);
             }
         }
@@ -472,9 +474,12 @@ public class GLmain {
      * Get C Extension Function Pointers 
      * 
      * @param extensionName - extension name or regex to query function pointers
+     * @param asStatic - create static loader
+     * @param asMangled - function names are mangled
+     * 
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtLoaders(String extensionName, boolean asStatic) {
+    public String asCFunctionExtLoaders(String extensionName, boolean asStatic, boolean asMangled) {
         if (extensionName == null) {
             extensionName = "";
         }
@@ -498,7 +503,7 @@ public class GLmain {
             String name = glExt.name.trim();
             if (containsIgnoreCase(list,name)) {
                 glExt.setJavaAPIMode(getAPI());
-                String loader = glExt.asCfunctionLoaders(asStatic);
+                String loader = glExt.asCfunctionLoaders(asStatic, asMangled);
                 sb.append(loader);
                 
                 listLoaderNames.add(glExt.getFunctionLoaderName());
@@ -594,9 +599,14 @@ public class GLmain {
      * Get C Extension Function Pointers 
      * TODO retrofit
      * @param extensionName - List of <b>exactly</b> extension names query function pointers
+     * @param asStatic - declared laoder as static function
+     * @param asMangled - use Mangled function name, to avoid colisions with glExt.h
+     * 
      * @return java loading methods for GL/EGL Extensions
+     * 
+     * @see GLmain#asCFunctionExtPointers(List, boolean, boolean)
      */
-    public String asCFunctionExtLoaders(List<String> extensionNames, boolean asStatic) {
+    public String asCFunctionExtLoaders(List<String> extensionNames, boolean asStatic, boolean asMangled) {
        
         checkExtensionGroup(extensionNames);
         List<String> list = extensionNames;
@@ -616,7 +626,7 @@ public class GLmain {
             String name = glExt.name.trim();
             if (containsIgnoreCase(list,name)) {
                 glExt.setJavaAPIMode(getAPI());
-                String loader = glExt.asCfunctionLoaders(asStatic);
+                String loader = glExt.asCfunctionLoaders(asStatic, asMangled);
                 //skip extensions with no functions
                 if(loader.trim().length() > 5){
                     sb.append(loader);
@@ -686,9 +696,11 @@ public class GLmain {
     
     /**
      * Get C Function Pointers 
+     * @param asStatic - static loaders
+     * @param asMangled - to load function on mangled names
      * @return java loading methods for GL/EGL Extensions
      */
-    public String asCFunctionExtLoaders(boolean asStatic) {
+    public String asCFunctionExtLoaders(boolean asStatic, boolean asMangled) {
         StringBuilder sb = new StringBuilder(8 * 1024);
         
         sb.append("  // function loader\n")
@@ -696,7 +708,7 @@ public class GLmain {
         .append("\n\n");
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(getAPI());
-            String loader = glExt.asCfunctionLoaders(asStatic);
+            String loader = glExt.asCfunctionLoaders(asStatic, asMangled);
             sb.append(loader);
         }
         return sb.toString();
@@ -1066,12 +1078,12 @@ public class GLmain {
         
          // declare FUNC Pointers       
         sb.append("  // function pointers section \n");
-        String funcPtr = asCFunctionExtPointers(extensionNames, true);        
+        String funcPtr = asCFunctionExtPointers(extensionNames, true, true);        
         sb.append(funcPtr);
         
         
         sb.append("\n  // extension loaders\n");
-        String funcLoaders = asCFunctionExtLoaders(extensionNames, true);        
+        String funcLoaders = asCFunctionExtLoaders(extensionNames, true, true);        
         sb.append(funcLoaders);
         
         sb.append("");
@@ -1311,6 +1323,7 @@ public class GLmain {
      * @return C++ source code
      */
     public String asCclassExt(){
+        boolean mangled = true;
         String className = getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
         if(api==GL_API.EGL){
@@ -1333,13 +1346,13 @@ public class GLmain {
         
         // variables
         sb.append("     public:\n");
-        String fntProc = asCFunctionExtPointers(false);
+        String fntProc = asCFunctionExtPointers(false,mangled);
         sb.append(fntProc);
         
         //methods
         sb.append("\n");
         sb.append("     public:\n");
-        String loaders = asCFunctionExtLoaders(false);
+        String loaders = asCFunctionExtLoaders(false, mangled);
         sb.append(loaders);
         
         sb.append("\n");
@@ -1360,6 +1373,7 @@ public class GLmain {
      * @return C++ source code
      */
     public String asCclassExt(String extension, String nameSuggestion){
+        boolean mangled = true;
         String className = nameSuggestion != null ? nameSuggestion : getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
         if(api != GL_API.GL){
@@ -1383,13 +1397,13 @@ public class GLmain {
         
         // variables
         sb.append("     public:\n");
-        String fntProc = asCFunctionExtPointers(extension,false);
+        String fntProc = asCFunctionExtPointers(extension,false, mangled);
         sb.append(fntProc);
         
         //methods
         sb.append("\n");
         sb.append("     public:\n");
-        String loaders = asCFunctionExtLoaders(extension, false);
+        String loaders = asCFunctionExtLoaders(extension, false, mangled);
         sb.append(loaders);
 
         
@@ -1457,7 +1471,7 @@ public class GLmain {
                                   boolean backwards,
                                   List<String> extensions, 
                                   String nameSuggestion){
-        
+        boolean mangled = true;
         String className = nameSuggestion != null ? nameSuggestion : getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
         // append includes
@@ -1471,13 +1485,13 @@ public class GLmain {
         if (extensions != null && extensions.size() > 0) {
             // variables
             sb.append("     public:\n");
-            String fntProc = asCFunctionExtPointers(extensions, false);
+            String fntProc = asCFunctionExtPointers(extensions, false, mangled);
             sb.append(fntProc);
 
             // methods
             sb.append("\n");
             sb.append("     public:\n");
-            String loaders = asCFunctionExtLoaders(extensions, false);
+            String loaders = asCFunctionExtLoaders(extensions, false, mangled);
             sb.append(loaders);
         }
         
@@ -1518,6 +1532,7 @@ public class GLmain {
      * @return C++ source code
      */
     public String asCclassExt(List<String> extensions, String nameSuggestion){
+        boolean mangled = true;
         String className = nameSuggestion != null ? nameSuggestion : getAPI().toUpperCase() + "Ext";
         StringBuilder sb = new StringBuilder(10*1024);
         if(api != GL_API.GL){
@@ -1541,13 +1556,13 @@ public class GLmain {
         
         // variables
         sb.append("     public:\n");
-        String fntProc = asCFunctionExtPointers(extensions,false);
+        String fntProc = asCFunctionExtPointers(extensions,false, mangled);
         sb.append(fntProc);
         
         //methods
         sb.append("\n");
         sb.append("     public:\n");
-        String loaders = asCFunctionExtLoaders(extensions, false);
+        String loaders = asCFunctionExtLoaders(extensions, false, mangled);
         sb.append(loaders);
 
         
@@ -1837,6 +1852,8 @@ public class GLmain {
         boolean testJNIgenHeader = false;
         boolean testClassExtSelec = false;
         
+        boolean mangled = true;
+        
         if(testQueryExt){                       
             String regex = "Q";
             
@@ -1858,12 +1875,12 @@ public class GLmain {
         String ext = "INTEL";
         if (testFunctionPointers) {
             
-            String pointers = gl.asCFunctionExtPointers(ext, true);
+            String pointers = gl.asCFunctionExtPointers(ext, true, mangled);
             System.out.println(pointers);
         }
 
         if (testFunctionLoaders) {
-            String pfnLoaders = gl.asCFunctionExtLoaders(ext,true);
+            String pfnLoaders = gl.asCFunctionExtLoaders(ext,true, mangled);
             System.out.println("\n\n// asCFunctionLoaders\n " + pfnLoaders);
         }
 

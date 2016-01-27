@@ -65,7 +65,7 @@ public class XMLParser {
         //parser.print();
         
         GLenumAll enumAll = parser.enumAll;
-        Set<GLExtension> glesExt = parser.filterExtensions(false, true, true, true);
+        Set<GLExtension> glesExt = parser.filterExtensions(false, true, false, false);
         
         for (GLExtension glExt : glesExt) {
             glExt.setCommands(parser.cmdSet);
@@ -83,15 +83,15 @@ public class XMLParser {
         System.out.println("///////////////////////////////////");
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(GLExtension.GLES1);
-            String cFPNProc = glExt.asCfunctionPointers(true);
+            String cFPNProc = glExt.asCfunctionPointers(true, true);
             System.err.println(cFPNProc);
         }
         
         System.out.println("///////////////////////////////////");
         for (GLExtension glExt : glesExt) {
             glExt.setJavaAPIMode(GLExtension.GLES1);
-            String txt = glExt.asCfunctionLoaders(true);
-            System.out.println(txt);
+            String txt = glExt.asCfunctionLoaders(true, true);
+            System.err.println(txt);
         }
         
         System.out.println("///////////////////////////////////");

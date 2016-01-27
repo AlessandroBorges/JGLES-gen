@@ -10,7 +10,11 @@ import java.util.*;
 public class GLExtension
  implements JavaPrinter, Comparable<GLExtension>
 
-{    
+{   
+    /**
+     * Prefix for mangled function
+     */
+    public static final String MANGLES_PREFIX ="gles_";
     
     protected static final String KHRONOS_GL = "https://www.khronos.org/registry/gl/extensions/";
     protected static final String KHRONOS_GLES = "https://www.khronos.org/registry/gles/extensions/";
@@ -480,9 +484,10 @@ public class GLExtension
     /**
      * Create declaration for function procedure pointers.
      * @param asStatic - true to create static function pointers
+     * @param mangled - true to create mangled name and later redefine
      * @return source code in C for function pointers
      */
-    public String asCfunctionPointers(boolean asStatic){
+    public String asCfunctionPointers(boolean asStatic, boolean mangled){
         String NTAB = "\n\t";
         StringBuilder sb = new StringBuilder(5 * 1024);
 
@@ -524,10 +529,23 @@ public class GLExtension
                 }else{
                     sb.append("  ");
                 } 
+                if(mangled){
+                    // pfn mangled function name
+                    sb.append(pfnproc(funcName))
+                    .append("\t")
+                    .append(MANGLES_PREFIX).append(funcName)
+                    .append(";"); 
+                    // redefine mangled to normal name
+                    sb.append(NTAB)
+                    .append(" #define\t")
+                    .append(funcName).append('\t')
+                    .append(MANGLES_PREFIX).append(funcName);
+                }else{
                 sb.append(pfnproc(funcName))
                 .append("\t")
                 .append(funcName)
                 .append(";");
+                }
             }// for Loops
         }// requires
 
@@ -544,9 +562,12 @@ public class GLExtension
     
     /**
      * Create method to load extensions
-     * @return
+     * @param asStatic - as static loader
+     * @param asMangled - load function with mangled name
+     * 
+     * @return string with loader source code
      */
-    public String asCfunctionLoaders(boolean asStatic){
+    public String asCfunctionLoaders(boolean asStatic, boolean asMangled){
         
         String NTAB = "\n\t  ";
         StringBuilder sb = new StringBuilder(5 * 1024);
@@ -588,9 +609,10 @@ public class GLExtension
             sb.append("  int loadExtFunc").append(require.extName).append("(){");
             for (GLFunction func : funcs) {
                 String funcName = func.name.trim();
+                String mangledFuncName = asMangled ? mangle(funcName) : funcName;
                 String pfnName = pfnproc(funcName);
                 sb.append(NTAB)
-                .append(funcName)
+                .append(mangledFuncName)
                 .append(" = (")
                 .append("")
                 .append(pfnName)
@@ -606,6 +628,15 @@ public class GLExtension
 
        
         return sb.toString();
+    }
+    
+    /**
+     * Mangle a name, by adding gles_ prefix
+     * @param funcName - function name to mangle
+     * @return function name mangled
+     */
+    public static String mangle(String funcName){
+        return MANGLES_PREFIX + funcName;
     }
     
     
